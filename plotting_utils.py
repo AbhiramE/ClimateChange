@@ -22,7 +22,6 @@ def plot_vars(variables, titles, lon, lat, norm, color_vmin=0.1, fig_size=(10, 1
         plt.title(titles[i])
         plt.xlabel('Longitude')
         plt.ylabel('Latitude')
-        plt.savefig("figs/" + str(titles[i]))
 
-
-        # colors.LogNorm(vmin=0.1)
+    plt.savefig("figs/" + str(titles[n_plots-1]))
+    # colors.LogNorm(vmin=0.1)
