@@ -2,12 +2,23 @@ from __future__ import print_function
 import glob
 import os
 import subprocess
+import logging as log
 from shutil import copyfile
 
 DCALVLIQs = [0.0]  # 0 - 200 reasonable
 DCLIFFVMAXs = [0.0e3]  # 0e3 - 12e3 reasonable
+
 make_file_dirs = {}
 files = {}
+
+
+def configure_logging(log_level=log.INFO):
+    '''
+    Method to configure the logger
+    '''
+    # Rewrite log
+    # log.basicConfig(filename='setup_script.log', filemode='w', level=log_level)
+    log.basicConfig(level=log_level)
 
 
 def make_directories():
@@ -54,17 +65,22 @@ def source_gmake_and_run_job():
                                              executable="/bin/bash")
             os.environ.clear()
             os.environ.update(line.partition('=')[::2] for line in output.split('\0'))
+            log.info("Make file created for "+str(param1)+" "+str(param2))
 
             # Switch to created directory
             os.chdir(os.getcwd() + make_file_dirs[key])
+            log.info("Cd into directory")
 
             # Run gmake command
             process = subprocess.Popen(["gmake", "-f", "makeiceclif"], stdout=subprocess.PIPE)
-            print(process.communicate()[0])
+            log.info(process.communicate()[0])
             purge("*.o")
 
             # TODO:
             # launch job by calling qsub?
+
+            # Finally change directory back
+            os.chdir("../")
 
 
 def purge(pattern):
@@ -73,6 +89,7 @@ def purge(pattern):
 
 
 if __name__ == '__main__':
+    configure_logging()
     make_directories()
     write_params_to_makefile()
     source_gmake_and_run_job()
