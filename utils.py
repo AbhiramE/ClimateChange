@@ -1,6 +1,11 @@
 from __future__ import print_function
-import pandas as pd
+
+import glob
 import logging as log
+import os
+
+import pandas as pd
+
 
 def read_output(file_name, header_row=0, skip_rows=2, delim=r"\s+"):
     '''
@@ -27,3 +32,7 @@ def configure_logging(log_level=log.INFO):
     # Rewrite log
     # log.basicConfig(filename='setup_script.log', filemode='w', level=log_level)
     log.basicConfig(level=log_level)
+
+def purge(pattern):
+    for f in glob.glob(pattern):
+        os.remove(f)

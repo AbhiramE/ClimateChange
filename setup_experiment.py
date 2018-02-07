@@ -8,9 +8,14 @@ import subprocess
 import logging as log
 from shutil import copyfile
 
+'''
+qsub -wd /nfs/roc/home/aeswaran/climate/abhiram/ -b n -V -S /usr/bin/python -N setup -e setup.err -o setup.out  -q 
+all.q@compute-0-1 setup_experiment.py 
+'''
+
 DCALVLIQs = [0.0]  # 0 - 200 reasonable
 DCLIFFVMAXs = [0.0e3]  # 0e3 - 12e3 reasonable
-setup_path = "/nfs/c01/partition1/climate/abhiram/setup.sh"
+setup_path = "/nfs/c01/partition1/climate/setup.sh"
 make_file_dirs = {}
 files = {}
 
@@ -44,6 +49,8 @@ def make_directories():
             files[key] = open(directory + '/makeiceclif', 'w')
             make_file_dirs[key] = '/' + directory + '/'
             log.info("Done with make_directories")
+            
+
 
     sys.stdout = old_stdout
     log_file.close()
@@ -98,9 +105,7 @@ def source_gmake_and_run_job():
             print("</run>")
 
 
-def purge(pattern):
-    for f in glob.glob(pattern):
-        os.remove(f)
+
 
 
 if __name__ == '__main__':
