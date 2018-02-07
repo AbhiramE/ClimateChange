@@ -28,6 +28,7 @@ def configure_logging(log_level=log.INFO):
 
 
 def make_directories():
+    exp_dir = os.getcwd() + '/' + constants.EXPERIMENT_DIR
     try:
         os.mkdir(constants.EXPERIMENT_DIR)
     except:
@@ -41,12 +42,12 @@ def make_directories():
             args['cliffmax'] = cliffmax
             key = (calvliq, cliffmax)
             job_name = 'run_' + str(calvliq) + '_' + str(cliffmax)
-            directory = os.getcwd() + constants.EXPERIMENT_DIR + job_name + '/'
+            directory = exp_dir + job_name + '/'
             exp_dirs[key] = directory
             try:
                 os.mkdir(directory)
-            except:
-                print('directory already exists')
+            except Exception as e:
+                print(e)
 
             copyfile(constants.BOOTSTRAP_DIR + 'restartin',
                      directory + 'restartin')  # file is big, can we make symlink instead?
@@ -57,7 +58,9 @@ def make_directories():
             command = "qsub -wd " + directory + " -b n -V -S /usr/bin/python -N " + job_name + " -e " + job_name + \
                       ".err -o " + job_name + ".out  -q all.q@compute-0-1 run_experiment.py "
 
-            process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            env = os.environ.copy()
+            env['PATH'] = env['PATH'] + ":" + os.getcwd()
+            process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
             out, err = process.communicate()
             job_ids[key] = out.split()[2]
             log.info(out)
@@ -73,10 +76,10 @@ def generate_make_file(make_file_path, args):
                 if 'DCALVLIQ' in line:
                     line2 = line.replace('PARAM', str(args['calvliq']))
                 elif 'DCLIFFVMAX' in line:
-                    line2 = line.replace('PARAM', args['cliffmax'])
+                    line2 = line.replace('PARAM', str(args['cliffmax']))
                 else:
                     line2 = line
-                out_file.write(line)
+                out_file.write(line2)
 
 
 if __name__ == '__main__':
