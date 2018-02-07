@@ -1,5 +1,6 @@
 from __future__ import print_function
 import pandas as pd
+import logging as log
 
 def read_output(file_name, header_row=0, skip_rows=2, delim=r"\s+"):
     '''
@@ -18,3 +19,11 @@ def read_output(file_name, header_row=0, skip_rows=2, delim=r"\s+"):
     df=df[:-1] # Remove the last row which contains some summary
     return
 
+
+def configure_logging(log_level=log.INFO):
+    '''
+    Method to configure the logger
+    '''
+    # Rewrite log
+    # log.basicConfig(filename='setup_script.log', filemode='w', level=log_level)
+    log.basicConfig(level=log_level)
