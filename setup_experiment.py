@@ -15,10 +15,6 @@ all.q@compute-0-1 setup_experiment.py
 
 DCALVLIQs = [0.0]  # 0 - 200 reasonable
 DCLIFFVMAXs = [0.0e3]  # 0e3 - 12e3 reasonable
-setup_path = "/nfs/c01/partition1/climate/setup.sh"
-make_file_dirs = {}
-files = {}
-
 
 def configure_logging(log_level=log.INFO):
     '''
@@ -30,86 +26,55 @@ def configure_logging(log_level=log.INFO):
 
 
 def make_directories():
-    old_stdout = sys.stdout
-    log_file = open("log_makedir.log", "w")
-    for param1 in DCALVLIQs:
-        for param2 in DCLIFFVMAXs:
-            key = (param1, param2)
-            directory = 'run_' + str(param1) + '_' + str(param2)
+    try:
+        os.mkdir(constants.EXPERIMENT_DIR)
+    except:
+        pass
+    exp_dirs=dict()
+    for calvliq in DCALVLIQs:
+        for cliffmax in DCLIFFVMAXs:
+            args=dict()
+            args['calvliq']=calvliq
+            args['cliffmax']=cliffmax
+            key=(calvliq,cliffmax)
+            job_name='run_' + str(calvliq) + '_' + str(cliffmax)
+            directory = os.get_cwd()+  constants.EXPERIMENT_DIR+job_name+'/'
+            exp_dirs[key]=directory
             try:
                 os.mkdir(directory)
             except:
                 print('directory already exists')
 
-            print("Here")
-            print(os.getcwd())
-            copyfile('restartin', directory + '/restartin')  # file is big, can we make symlink instead?
-            copyfile('comicegrid.h', directory + '/comicegrid.h')
-            copyfile('crhmelfilein', directory + '/crhmelfilein')
-            files[key] = open(directory + '/makeiceclif', 'w')
-            make_file_dirs[key] = '/' + directory + '/'
-            log.info("Done with make_directories")
+            copyfile(constants.BOOTSTRAP_DIR+'restartin', directory + 'restartin')  # file is big, can we make symlink instead?
+            copyfile(constants.BOOTSTRAP_DIR+'comicegrid.h', directory + 'comicegrid.h')
+            copyfile(constants.BOOTSTRAP_DIR+'crhmelfilein', directory + 'crhmelfilein')
+            generate_make_file(directory+'makeiceclif',args)
             
-
-
-    sys.stdout = old_stdout
-    log_file.close()
-
-
-def write_params_to_makefile():
-    with open('makeiceclif_template') as file:
-        for line in file:
-            for param1 in DCALVLIQs:
-                for param2 in DCLIFFVMAXs:
-                    key = (param1, param2)
-                    if 'DCALVLIQ' in line:
-                        line2 = line.replace('PARAM', str(param1))
-                    elif 'DCLIFFVMAX' in line:
-                        line2 = line.replace('PARAM', str(param2))
-                    else:
-                        line2 = line
-                    files[key].write(line2)
-
-        for key in files:
-            files[key].close()
-
-
-def source_gmake_and_run_job():
-    for param1 in DCALVLIQs:
-        for param2 in DCLIFFVMAXs:
-            key = (param1, param2)
-            print("<compile>")
-
-            # process = subprocess.Popen("source /nfs/c01/partition1/climate/abhiram/setup.sh", stdout=subprocess.PIPE)
-
-            # Switch to created directory
-            source_command = "source " + setup_path
-            change_directory = "cd " + os.getcwd() + make_file_dirs[key]
-            makeclif_path = os.getcwd() + make_file_dirs[key] + "makeiceclif"
-            gmake_command = "gmake -f " + makeclif_path
-            process = subprocess.Popen([source_command + ";" + change_directory + ";" + gmake_command], shell=True,
-                                       stdout=subprocess.PIPE)
-            out, err = process.communicate()
+            command="qsub -wd "+directory+" -b n -V -S /usr/bin/python -N "+job_name+" -e "+job_name+".err -o "+job_name+".out  -q all.q@compute-0-1 run_experiment.py"
+            
+            process=subprocess.Popen(command.split(),stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out,err = process.communicate()
             log.info(out)
             log.info(err)
-            os.chdir(os.getcwd() + make_file_dirs[key])
-            purge("*.o")
-            print("</compile>")
-            print("<run>")
-            log.info(os.getcwd())
-            process = subprocess.Popen(["./sheetshelf.exe"], stdout=subprocess.PIPE)
-            out, err = process.communicate()
-            log.info(out)
-            log.info(err)
-            os.chdir(os.getcwd() + "/../")
-            print("</run>")
+    log.info("Done with make_directories")
+    return exp_dirs
 
 
+def generate_make_file(make_file_path,args):
+    with open(constants.BOOTSTRAP_DIR+'makeiceclif_template') as template:
+        with open(make_file_path,'w') as out_file:
+            for line in template:
+                if 'DCALVLIQ' in line:
+                    line2 = line.replace('PARAM', str(args['calvliq']))
+                elif 'DCLIFFVMAX' in line:
+                    line2 = line.replace('PARAM', args['cliffmax'])
+                else:
+                    line2 = line
+                out_file.write(line)
+                
 
 
 
 if __name__ == '__main__':
     configure_logging()
     make_directories()
-    write_params_to_makefile()
-    source_gmake_and_run_job()
