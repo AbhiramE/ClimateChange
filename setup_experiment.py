@@ -10,7 +10,7 @@ from shutil import copyfile
 
 DCALVLIQs = [0.0]  # 0 - 200 reasonable
 DCLIFFVMAXs = [0.0e3]  # 0e3 - 12e3 reasonable
-
+setup_path = "/nfs/c01/partition1/climate/abhiram/setup.sh"
 make_file_dirs = {}
 files = {}
 
@@ -25,7 +25,6 @@ def configure_logging(log_level=log.INFO):
 
 
 def make_directories():
-
     old_stdout = sys.stdout
     log_file = open("log_makedir.log", "w")
     for param1 in DCALVLIQs:
@@ -72,48 +71,31 @@ def source_gmake_and_run_job():
     for param1 in DCALVLIQs:
         for param2 in DCLIFFVMAXs:
             key = (param1, param2)
-            old_stdout = sys.stdout
-            log_file = open("message.log", "w")
             print("<compile>")
 
-            output = subprocess.Popen("source setup.sh", shell=True, executable="/bin/bash")
+            # process = subprocess.Popen("source /nfs/c01/partition1/climate/abhiram/setup.sh", stdout=subprocess.PIPE)
 
             # Switch to created directory
+            source_command = "source " + setup_path
+            change_directory = "cd " + os.getcwd() + make_file_dirs[key]
+            makeclif_path = os.getcwd() + make_file_dirs[key] + "makeiceclif"
+            gmake_command = "gmake -f " + makeclif_path
+            process = subprocess.Popen([source_command + ";" + change_directory + ";" + gmake_command], shell=True,
+                                       stdout=subprocess.PIPE)
+            out, err = process.communicate()
+            log.info(out)
+            log.info(err)
             os.chdir(os.getcwd() + make_file_dirs[key])
-
-            # Run gmake command
-            process = subprocess.Popen(["gmake", "-f", "makeiceclif"], stdout=subprocess.PIPE)
             purge("*.o")
-
             print("</compile>")
-
-            # TODO:
-            # launch job by calling qsub?
-            # "qsub
-            # -s 1 -wd /exp/home/abhaymittal/climate/abhay/Run85w0_0 -b y -q all.q  -V -S /bin/bash -m bea
-            # -M abhaymittal@cs.umass.edu -N sheetshelf -e sheetshelf.err -o sheetshelf.out ./sheetshelf.exe"
-
             print("<run>")
-
-            working_directory = os.getcwd()
-            job_name = "sheetshelf"
-            error_file = job_name + ".err"
-            output_file = job_name + ".out"
-            email_id = "aeswaran@cs.umass.edu"
-            exe = "./sheetshelf.exe"
-            command = "qsub -wd " + working_directory + " -b y -q all.q@compute-0-1  -V -S /bin/bash  -N sheetshelf -e " \
-                                                        "sheetshelf.err -o sheetshelf.out  -m bea -M aeswaran@cs.umass.edu " \
-                                                        "./sheetshelf.exe "
-            log.info(command.split())
-            log.info(os.listdir(os.getcwd()))
-            process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-
-            # Finally change directory back
+            log.info(os.getcwd())
+            process = subprocess.Popen(["./sheetshelf.exe"], stdout=subprocess.PIPE)
+            out, err = process.communicate()
+            log.info(out)
+            log.info(err)
             os.chdir(os.getcwd() + "/../")
             print("</run>")
-
-            sys.stdout = old_stdout
-            log_file.close()
 
 
 def purge(pattern):
