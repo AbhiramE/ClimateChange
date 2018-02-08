@@ -1,21 +1,19 @@
 #!/usr/bin/python
 
-from __future__ import print_function
-import glob
-import os
-import sys
-import constants
-import subprocess
 import logging as log
+import os
+import subprocess
 from shutil import copyfile
+
+import constants
 
 '''
 qsub -wd /nfs/roc/home/aeswaran/climate/abhiram/ -b n -V -S /usr/bin/python -N setup -e setup.err -o setup.out  -q 
 all.q@compute-0-1 setup_experiment.py 
 '''
 
-DCALVLIQs = [0.0]  # 0 - 200 reasonable
-DCLIFFVMAXs = [0.0e3]  # 0e3 - 12e3 reasonable
+DCALVLIQs = [0.0, 100]  # 0 - 200 reasonable
+DCLIFFVMAXs = [0.0e3, 6e3]  # 0e3 - 12e3 reasonable
 
 
 def configure_logging(log_level=log.INFO):
