@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import logging as log
 import os
@@ -8,7 +8,7 @@ from shutil import copyfile
 import constants
 
 '''
-qsub -wd /nfs/roc/home/aeswaran/climate/abhiram/ -b n -V -S /usr/bin/python -N setup -e setup.err -o setup.out  -q 
+qsub -wd /nfs/roc/home/aeswaran/climate/abhiram/ -b n -V -S /usr/bin/python3 -N setup -e setup.err -o setup.out  -q 
 all.q@compute-0-1 setup_experiment.py 
 '''
 
@@ -53,7 +53,7 @@ def make_directories():
             copyfile(constants.BOOTSTRAP_DIR + 'crhmelfilein', directory + 'crhmelfilein')
             generate_make_file(directory + 'makeiceclif', args)
 
-            command = "qsub -wd " + directory + " -b n -V -S /usr/bin/python -N " + job_name + " -e " + job_name + \
+            command = "qsub -wd " + directory + " -b n -V -S /usr/bin/python3 -N " + job_name + " -e " + job_name + \
                       ".err -o " + job_name + ".out  -q all.q@compute-0-1 run_experiment.py "
 
             env = os.environ.copy()
