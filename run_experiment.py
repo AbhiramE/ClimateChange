@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import os
 import sys
-import json 
+import json
 
 paths = os.environ['PATH'].split(':')
 sys.path.append(paths[-1])
@@ -42,10 +42,11 @@ def source_gmake_and_run_job():
 if __name__ == '__main__':
     configure_logging()
     source_gmake_and_run_job()
+    print(os.listdir(os.curdir))
     df = sutils.read_output('fort.22')
-    esl=df['esl(m)']
-    result=dict()
-    reslt['esl']=esl.iloc[-1]
-    with open(constants.OUTPUT_FILE_NAME,'w') as f:
-        json.dump(result,f)
-        print('dump to file')<
+    esl = df['esl(m)']
+    result = dict()
+    result['esl'] = esl.iloc[-1]
+    with open(constants.OUTPUT_FILE_NAME, 'w') as f:
+        json.dump(result, f)
+        print('dump to file')

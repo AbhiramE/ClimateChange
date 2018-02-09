@@ -9,6 +9,7 @@ import argparse
 import constants
 import utils
 import time
+
 '''
 qsub -wd /nfs/roc/home/aeswaran/climate/abhiram/ -b n -V -S /usr/bin/python3 -N setup -e setup.err -o setup.out  -q 
 all.q@compute-0-1 setup_experiment.py 
@@ -23,10 +24,11 @@ def configure_logging(log_level=log.INFO):
     # log.basicConfig(filename='setup_script.log', filemode='w', level=log_level)
     log.basicConfig(level=log_level)
 
+
 def parse_args():
-    parser=argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
     parser.add_argument('--exp_dir', type=str, default='exp/')
-    args=parser.parse_args()
+    args = parser.parse_args()
     return args
 
 
@@ -89,13 +91,11 @@ if __name__ == '__main__':
     DCALVLIQs = np.random.uniform(0, 200, 2)  # 0 - 200 reasonable
     DCLIFFVMAXs = np.random.uniform(0, 12e3, 1)  # 0e3 - 12e3 reasonable
     configure_logging()
-    args=parse_args()
+    args = parse_args()
     exp_dirs, job_ids = make_directories(args)
     print(exp_dirs)
     print(job_ids)
-    while(True in utils.is_job_running(job_ids)):
+    while True in utils.is_job_running(job_ids):
         time.sleep(60)
-    res=utils.get_combined_output(exp_dirs) 
+    res = utils.get_combined_output(exp_dirs)
     print(res)
-    
-    

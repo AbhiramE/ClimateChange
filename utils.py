@@ -6,7 +6,8 @@ import os
 import constants
 import json
 import subprocess
- 
+
+
 def configure_logging(log_level=log.INFO):
     '''
     Method to configure the logger
@@ -33,24 +34,24 @@ def is_job_running(job_ids):
     -----
     A list l where l[i] = True denotes that job_ids[i] is running
     '''
-    process=subprocess.Popen('qstat', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out,err=process.communicate()
-    out=str(out,'utf-8')
+    process = subprocess.Popen('qstat', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = process.communicate()
+    out = str(out, 'utf-8')
     # print(bytes(out, "utf-8").decode("unicode_escape"))
-    job_running=[]
+    job_running = []
     for job_key in job_ids:
-        job_id=str(job_ids[job_key],'utf-8')
+        job_id = str(job_ids[job_key], 'utf-8')
         if job_id in out:
             job_running.append(True)
-        else: 
+        else:
             job_running.append(False)
     return job_running
 
 
 def get_combined_output(exp_dirs):
-    result=dict()
+    result = dict()
     for key in exp_dirs:
-        with open(exp_dirs[key]+constants.OUTPUT_FILE_NAME,'r') as f:
-            data=json.load(f)
-            result[key]=data
+        with open(exp_dirs[key] + constants.OUTPUT_FILE_NAME, 'r') as f:
+            data = json.load(f)
+            result[key] = data
     return result
