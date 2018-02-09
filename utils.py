@@ -53,5 +53,5 @@ def get_combined_output(exp_dirs):
     for key in exp_dirs:
         with open(exp_dirs[key] + constants.OUTPUT_FILE_NAME, 'r') as f:
             data = json.load(f)
-            result[key] = data
+            result[str(key)] = data
     return result
