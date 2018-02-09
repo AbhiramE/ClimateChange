@@ -2,6 +2,7 @@
 
 import logging as log
 import os
+import numpy as np
 import subprocess
 from shutil import copyfile
 
@@ -11,9 +12,6 @@ import constants
 qsub -wd /nfs/roc/home/aeswaran/climate/abhiram/ -b n -V -S /usr/bin/python3 -N setup -e setup.err -o setup.out  -q 
 all.q@compute-0-1 setup_experiment.py 
 '''
-
-DCALVLIQs = [0.0, 100]  # 0 - 200 reasonable
-DCLIFFVMAXs = [0.0e3, 6e3]  # 0e3 - 12e3 reasonable
 
 
 def configure_logging(log_level=log.INFO):
@@ -81,6 +79,8 @@ def generate_make_file(make_file_path, args):
 
 
 if __name__ == '__main__':
+    DCALVLIQs = np.random.uniform(0, 200, 2)  # 0 - 200 reasonable
+    DCLIFFVMAXs = np.random.uniform(0, 12e3, 2)  # 0e3 - 12e3 reasonable
     configure_logging()
     exp_dirs, job_ids = make_directories()
     print(exp_dirs)
