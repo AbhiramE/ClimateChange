@@ -9,6 +9,7 @@ import argparse
 import constants
 import utils
 import time
+import json
 
 '''
 qsub -wd /nfs/roc/home/aeswaran/climate/abhiram/ -b n -V -S /usr/bin/python3 -N setup -e setup.err -o setup.out  -q 
@@ -97,5 +98,9 @@ if __name__ == '__main__':
     print(job_ids)
     while True in utils.is_job_running(job_ids):
         time.sleep(60)
+
     res = utils.get_combined_output(exp_dirs)
+    with open(constants.FINAL_OUTPUT_FILE_NAME, 'w') as f:
+        json.dump(res, f)
+        print('dump to file')
     print(res)

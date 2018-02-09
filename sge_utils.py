@@ -1,6 +1,7 @@
 import subprocess
 import pandas as pd
 
+
 def read_output(file_name, header_row=0, skip_rows=2, delim=r"\s+"):
     '''
     Method to read the output file (fort.22)

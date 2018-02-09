@@ -34,7 +34,6 @@ def source_gmake_and_run_job():
     out, err = process.communicate()
     log.info(out)
     log.info(err)
-    os.chdir(os.getcwd() + "/../")
     print("</run>")
     log.info('done with sheetshelf')
 
