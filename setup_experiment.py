@@ -5,9 +5,10 @@ import os
 import numpy as np
 import subprocess
 from shutil import copyfile
-
+import argparse
 import constants
-
+import utils
+import time
 '''
 qsub -wd /nfs/roc/home/aeswaran/climate/abhiram/ -b n -V -S /usr/bin/python3 -N setup -e setup.err -o setup.out  -q 
 all.q@compute-0-1 setup_experiment.py 
@@ -22,11 +23,17 @@ def configure_logging(log_level=log.INFO):
     # log.basicConfig(filename='setup_script.log', filemode='w', level=log_level)
     log.basicConfig(level=log_level)
 
+def parse_args():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--exp_dir', type=str, default='exp/')
+    args=parser.parse_args()
+    return args
 
-def make_directories():
-    exp_dir = os.getcwd() + '/' + constants.EXPERIMENT_DIR
+
+def make_directories(args):
+    exp_dir = os.getcwd() + '/' + args.exp_dir
     try:
-        os.mkdir(constants.EXPERIMENT_DIR)
+        os.mkdir(exp_dir)
     except:
         pass
     exp_dirs = dict()
@@ -80,8 +87,15 @@ def generate_make_file(make_file_path, args):
 
 if __name__ == '__main__':
     DCALVLIQs = np.random.uniform(0, 200, 2)  # 0 - 200 reasonable
-    DCLIFFVMAXs = np.random.uniform(0, 12e3, 2)  # 0e3 - 12e3 reasonable
+    DCLIFFVMAXs = np.random.uniform(0, 12e3, 1)  # 0e3 - 12e3 reasonable
     configure_logging()
-    exp_dirs, job_ids = make_directories()
+    args=parse_args()
+    exp_dirs, job_ids = make_directories(args)
     print(exp_dirs)
     print(job_ids)
+    while(True in utils.is_job_running(job_ids)):
+        time.sleep(60)
+    res=utils.get_combined_output(exp_dirs) 
+    print(res)
+    
+    
