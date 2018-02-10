@@ -1,3 +1,8 @@
+import os
+import sys
+
+paths = os.environ['PATH'].split(':')
+sys.path.append(paths[-1])
 import sge_utils as sutils
 import constants
 import json
