@@ -81,7 +81,6 @@ def initiate_jobs(args):
             copyfile(constants.BOOTSTRAP_DIR + 'crhmelfilein', directory + 'crhmelfilein')
             generate_make_file(directory + 'makeiceclif', param_dict)
 
-
             # submit the job in the Sun Grid Engine
             command = "qsub -wd " + directory + " -b n -V -S /usr/bin/python3 -N " + job_name + " -e " + job_name + \
                       ".err -o " + job_name + ".out  -q all.q@compute-0-1 run_experiment.py "
@@ -126,8 +125,7 @@ if __name__ == '__main__':
     utils.configure_logging()
     args = parse_args()
 
-
-    key_sig=['calvliq','cliffvmax']
+    key_sig = ['calvliq', 'cliffvmax']
     exp_dirs, job_ids = initiate_jobs(args)
     log.info('Job Ids are %s\n', job_ids)
 
@@ -136,9 +134,8 @@ if __name__ == '__main__':
         time.sleep(60)
 
     # get the final output
-    res = utils.get_combined_output(exp_dirs, key_sig)
+    res = utils.get_all_output(exp_dirs, key_sig)
     with open(constants.FINAL_OUTPUT_FILE_NAME, 'w') as f:
         json.dump(res, f)
 
-
-    log.info('%s\n',result)
+    log.info('%s\n', res)

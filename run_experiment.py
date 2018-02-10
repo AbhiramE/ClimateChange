@@ -51,12 +51,3 @@ def source_gmake_and_run_job():
 if __name__ == '__main__':
     configure_logging()
     source_gmake_and_run_job()
-
-    # read the output and extract the relevant values to a json file
-    df = sutils.read_output('fort.22')
-    esl = df['esl(m)']
-    result = dict()
-    result['esl'] = esl.iloc[-1]
-    with open(constants.OUTPUT_FILE_NAME, 'w') as f:
-        json.dump(result, f)
-        print('dump to file')
