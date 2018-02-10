@@ -71,6 +71,7 @@ def initiate_jobs(args):
             param_dict['calvliq'] = calvliq
             param_dict['cliffmax'] = cliffmax
             key = (calvliq, cliffmax)
+            key = str(key)
             job_name = 'run_' + str(calvliq) + '_' + str(cliffmax)
             directory = exp_dir + job_name + '/'
             exp_dirs[key] = directory
