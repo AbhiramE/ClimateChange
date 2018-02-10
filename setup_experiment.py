@@ -70,7 +70,7 @@ def initiate_jobs(args):
             param_dict = dict()
             param_dict['calvliq'] = calvliq
             param_dict['cliffmax'] = cliffmax
-            key = str((calvliq, cliffmax))
+            key = (calvliq, cliffmax)
             job_name = 'run_' + str(calvliq) + '_' + str(cliffmax)
             directory = exp_dir + job_name + '/'
             exp_dirs[key] = directory
@@ -126,9 +126,14 @@ def generate_make_file(make_file_path, param_dict):
 def get_final_output(directories, keys):
     job_name = "output_parse_job"
 
+    with open('directories', 'w') as outfile:
+        json.dump(directories, outfile)
+
+    with open('keys', 'w') as outfile:
+        json.dump(keys, outfile)
+
     command = "qsub -wd " + os.getcwd() + " -b n -V -S /usr/bin/python3 -N " + job_name + " -e " + job_name + \
-              ".err -o " + job_name + ".out  -q all.q@compute-0-1 parse_output.py " + json.dumps(directories) + " " \
-              + json.dumps(keys)
+              ".err -o " + job_name + ".out  -q all.q@compute-0-1 parse_output.py directories keys"
     env = os.environ.copy()
     env['PATH'] = env['PATH'] + ":" + os.getcwd()
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
