@@ -1,3 +1,11 @@
+'''
+This final contains some methods to be specifically called by jobs running on 
+compute nodes (could be resource intensive)
+
+Authors:
+ Abhay Mittal: abhaymittal@cs.umass.edu
+'''
+
 import subprocess
 import pandas as pd
 

@@ -1,5 +1,14 @@
 #!/usr/bin/python3
 
+'''
+ This file is the parent process run in the head node, it spawns the compute jobs 
+ for different parameter combinations and gets the final result back
+ Authors:
+ Abhay Mittal: abhaymittal@cs.umass.edu
+ Abhiram Eswaran: aeswaran@cs.umass.edu
+ Ryan Mckenna: rmckenna@cs.umass.edu
+'''
+
 import logging as log
 import os
 import numpy as np
@@ -17,23 +26,32 @@ all.q@compute-0-1 setup_experiment.py
 '''
 
 
-def configure_logging(log_level=log.INFO):
-    '''
-    Method to configure the logger
-    '''
-    # Rewrite log
-    # log.basicConfig(filename='setup_script.log', filemode='w', level=log_level)
-    log.basicConfig(level=log_level)
-
-
 def parse_args():
+    '''
+    Method to parse command line arguments
+    '''
     parser = argparse.ArgumentParser()
     parser.add_argument('--exp_dir', type=str, default='exp/')
     args = parser.parse_args()
     return args
 
 
-def make_directories(args):
+def initiate_jobs(args):
+    '''
+    Method to setup the directories for the different parameter combinations
+    and initiate qsub jobs for each of them
+    
+    Args:
+    args: A dictionary containing the parsed command line arguments
+
+    Returns:
+    ----
+    exp_dirs: A dictionary where each parameter combination tuple is key
+    and the directory path for that combination is the value
+    
+    job_ids: A dictionary where each parameter combination tuple is key
+    and the Sun Grid Engine job id is the value 
+    '''
     exp_dir = os.getcwd() + '/' + args.exp_dir
     try:
         os.mkdir(exp_dir)
@@ -41,11 +59,13 @@ def make_directories(args):
         pass
     exp_dirs = dict()
     job_ids = dict()
+
+    # setup for the different parameter combinations
     for calvliq in DCALVLIQs:
         for cliffmax in DCLIFFVMAXs:
-            args = dict()
-            args['calvliq'] = calvliq
-            args['cliffmax'] = cliffmax
+            param_dict = dict()
+            param_dict['calvliq'] = calvliq
+            param_dict['cliffmax'] = cliffmax
             key = (calvliq, cliffmax)
             job_name = 'run_' + str(calvliq) + '_' + str(cliffmax)
             directory = exp_dir + job_name + '/'
@@ -59,8 +79,10 @@ def make_directories(args):
                      directory + 'restartin')  # file is big, can we make symlink instead?
             copyfile(constants.BOOTSTRAP_DIR + 'comicegrid.h', directory + 'comicegrid.h')
             copyfile(constants.BOOTSTRAP_DIR + 'crhmelfilein', directory + 'crhmelfilein')
-            generate_make_file(directory + 'makeiceclif', args)
+            generate_make_file(directory + 'makeiceclif', param_dict)
 
+
+            # submit the job in the Sun Grid Engine
             command = "qsub -wd " + directory + " -b n -V -S /usr/bin/python3 -N " + job_name + " -e " + job_name + \
                       ".err -o " + job_name + ".out  -q all.q@compute-0-1 run_experiment.py "
 
@@ -75,14 +97,24 @@ def make_directories(args):
     return exp_dirs, job_ids
 
 
-def generate_make_file(make_file_path, args):
+def generate_make_file(make_file_path, param_dict):
+    '''
+    Method to generate the make file for a parameter combination
+
+    Args:
+    ----
+    make_file_path: The destination path for the make file
+
+    param_dict: A dictionary with parameter names as keys and their values as
+    value
+    '''
     with open(constants.BOOTSTRAP_DIR + 'makeiceclif_template') as template:
         with open(make_file_path, 'w') as out_file:
             for line in template:
                 if 'DCALVLIQ' in line:
-                    line2 = line.replace('PARAM', str(args['calvliq']))
+                    line2 = line.replace('PARAM', str(param_dict['calvliq']))
                 elif 'DCLIFFVMAX' in line:
-                    line2 = line.replace('PARAM', str(args['cliffmax']))
+                    line2 = line.replace('PARAM', str(param_dict['cliffmax']))
                 else:
                     line2 = line
                 out_file.write(line2)
@@ -91,16 +123,22 @@ def generate_make_file(make_file_path, args):
 if __name__ == '__main__':
     DCALVLIQs = np.random.uniform(0, 200, 2)  # 0 - 200 reasonable
     DCLIFFVMAXs = np.random.uniform(0, 12e3, 1)  # 0e3 - 12e3 reasonable
-    configure_logging()
+    utils.configure_logging()
     args = parse_args()
-    exp_dirs, job_ids = make_directories(args)
-    print(exp_dirs)
-    print(job_ids)
+
+
+    key_sig=['calvliq','cliffvmax']
+    exp_dirs, job_ids = initiate_jobs(args)
+    log.info('Job Ids are %s\n', job_ids)
+
+    # wait for all the jobs to finish
     while True in utils.is_job_running(job_ids):
         time.sleep(60)
 
-    res = utils.get_combined_output(exp_dirs)
+    # get the final output
+    res = utils.get_combined_output(exp_dirs, key_sig)
     with open(constants.FINAL_OUTPUT_FILE_NAME, 'w') as f:
         json.dump(res, f)
-        print('dump to file')
-    print(res)
+
+
+    log.info('%s\n',result)

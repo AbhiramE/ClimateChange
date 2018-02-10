@@ -1,5 +1,13 @@
-from __future__ import print_function
+'''
+This file contains some utility methods required during the runs
 
+Authors:
+----
+Abhay Mittal (abhaymittal@cs.umass.edu)
+Abhiram Eswaran (aeswaran@cs.umass.edu)
+'''
+
+from __future__ import print_function
 import glob
 import logging as log
 import os
@@ -18,6 +26,13 @@ def configure_logging(log_level=log.INFO):
 
 
 def purge(pattern):
+    '''
+    Method to remove files based on a regular expression
+
+    Args:
+    ----
+    pattern: The input regular expression
+    '''
     for f in glob.glob(pattern):
         os.remove(f)
 
@@ -48,10 +63,32 @@ def is_job_running(job_ids):
     return job_running
 
 
-def get_combined_output(exp_dirs):
-    result = dict()
+def get_combined_output(exp_dirs, key_sig):
+    '''
+    Method to combine the output from the different sheetshelf
+    executions into a single json object
+    
+    Args: 
+    -----
+    exp_dirs: A dictionary where key is the tuple of parameters and value is the 
+    path to the directory for that parameter combination
+    
+    key_sig: A tuple specifying the names, in order, for the parameter values 
+    in the keys of exp_dirs
+
+    Return: 
+    ----
+    result: A list of json object where each object contains a parameter
+    combination and the results obtained for that combination
+    '''
+    result = list()
     for key in exp_dirs:
         with open(exp_dirs[key] + constants.OUTPUT_FILE_NAME, 'r') as f:
+            obj=dict()
+            for i,name in enumerate(key_sig):
+                obj[name]=key[i]
             data = json.load(f)
-            result[str(key)] = data
+            for k in data:
+                obj[k]=data[k]
+            result.append(obj)
     return result
