@@ -1,0 +1,380 @@
+#-----------------------------------------------------
+# Makefile for compiling and linking sheet-shelf model
+#-----------------------------------------------------
+
+ DEBUG = 0
+#DEBUG = 1
+
+ IFEBM = 0
+#IFEBM = 1
+
+SHELL = /bin/sh
+.SUFFIXES: .F .o
+#.SILENT:
+NULL =
+
+#-----------------------------------------------------------------------
+
+HOST = $(shell uname -n)
+
+HOSTPRE = $(shell echo $(HOST) | cut -b1-3)
+
+ifeq ($(HOST),luna)
+  HOST = luna
+  NI =  /home/data01/deconto/include
+  NA =  /home/data01/deconto/lib
+endif
+ifeq ($(HOST),compute-0-1)
+  HOST = compute-0-1
+  NI =  /exp/home/deconto/Netcdf
+  NA =  /exp/home/deconto/Netcdf
+endif
+
+#-----------------------------------------------------------------------
+
+ifeq ($(HOST),luna)
+  DI = /home/data01/deconto/Sheetshelf/Code
+  DE = /home/data01/deconto/Sheetshelf/Code_ebm
+  W =
+endif
+ifeq ($(HOST),compute-0-1)
+  DI = /exp/home/deconto/climate/deconto/Sheetshelf/Code
+  DE = /exp/home/deconto/climate/deconto/Sheetshelf/Code_ebm
+  W =
+endif
+ifeq ($(HOST),condor)
+  DI = .
+  DE = .
+  W =
+endif
+
+#-----------------------------------------------------------------------
+
+this_makefile := $(lastword $(MAKEFILE_LIST))
+INCICE = *.h  $(DI)/*.h $(this_makefile)
+INCEBM = *.h  $(DE)/*.h $(this_makefile)
+VPATH  = .:$(DI):$(DE)
+IPATH  = -I. -I$(DI) -I$(DE) -I$(NI)
+
+ DFLAGS = -DSTEREO \
+          -DTERRA \
+          -DDECONTO \
+          -DEISANTA -DBEDMAP2 \
+          -DRESOL10 \
+          -DSL_ICE5G \
+          -DFORCEPLEIST \
+          -DRCMMATRIX \
+          -DRCMMATCO2 \
+          -DRCP85ATM \
+          -DRCP85OCN \
+          -DATMOSDT=3.0 \
+          -DTPDD=-2.0 \
+          -DRCPCORR \
+          -DTLAPSEPRECIP=10. \
+          -DBEDROCK -DIFLITH -DOMPLITH \
+          -DNETCDF \
+          -DSCHOOFGL \
+          -DOCMARTIN -DLEVITUS \
+          -DPITFUTOCN=2 \
+          -DPITFUTOCNASE \
+          -DFACEMELT=10. \
+          -DCALVING \
+          -DOCFACARC \
+          -DCALVACCH=200. -DCALVACCHARC=40. \
+          -DCRHMELREAD \
+          -DDTIMEICE=0.125 \
+          -DDTIMETHERM=1 \
+          -DDTIMECLIM=1 \
+          -DDTIMEBED=1 \
+          -DIFREST=0 \
+          -DNYEARSTART=0 \
+          -DNYEAREND=5 \
+          -DNYEARRES=5 \
+          -DNYEAROUT2D=5 \
+          -DNYEARHIS=5 \
+          -DNYEARTAB=1 \
+          -DNYEARTABBUD=-1 \
+          -DOCFACMULT=3.0 \
+          -DCALVLIQ=PARAM \
+          -DCLIFFVMAX=PARAM \
+          -DCLIFFMELT \
+          -DADAPTDT
+
+#---------------------------------------------------------------------------
+#         -DRCPFIX \
+#         -DRCMANOM \
+#         -DRACANTOBS
+##        -DPARAMCLIM -DSEARISECLIM
+#         -DOCMARTIN -DLIU2D -DLIUCORR -DLIUCORR2 \
+#         -DRCMMATRIX -DRCMMATCO2 -DRCMANOM -DRCP85ATM -DRCP85OCN -DRCPCORR \
+#         -DCALVNICK=.7 \
+
+#         -DDTIMEICE=.0625 \
+#         -DDTIMEICE=.125 \
+#         -DDTIMEICE=.25 \
+#         -DNYEAROUT1D=5 \
+
+#         -DCRHSHELF=10.**\(-5\) \
+#         -DCRHSHELFASEIN=10.**\(0.\) \
+#         -DTAUASTH=\(3*1.e3\) \
+#         -DLITHSTIF_W=10.**\(24.\) \
+#         -DGEOFLUX_W=70. \
+#         -DSUBGRIDPINSD=2. \
+#         -DUSCHOOFFAC=10.**\(0.\) \
+#         -DLAPSEPARAM=\(8.*1.e-3\) \
+#         -DCLIFFVMAX=\(3.*1.e3\) \
+
+#         -DNYEARPLOT1D=5 \
+#         -DTABTROUGH -DNYEARTABTRO=5 \
+
+#         
+#         -DDTIMEBED=50 \
+#         -DDTIMEBED=25 \
+
+#         -DDTIMEICE=.125 \
+#         -DDTIMEICE=.0625 \
+
+#         -DRCMMATRIX -DRCMMATCO2 -DRCMANOM -DRCP26 -DRCPCORR
+#         -DRCMMATRIX -DRCMMATCO2 -DRCMANOM -DRCP45 -DRCPCORR
+#         -DRCMMATRIX -DRCMMATCO2 -DRCMANOM -DRCP85 -DRCPCORR
+#         -DRCMMATRIX -DRCMMATCO2 -DRCMANOM -DRCP85 -DRCPCORR -DRAPIDARCHER
+#         -DRCMMATRIX -DRCMANOM -DRCMCO2=1.43 -DRCMWEI=2. -DOCEANDT=2. -DLEVITUS -DRCMFILE='"Runmis31_400w_40/LSX_mis31_400w_40.nc"' 
+
+#===========
+
+DFLAGSPA = -DNUMREC -DCHANNEL_TRIDIA
+
+ifeq ($(IFEBM),1)
+  DFLAGSEBM = -DEBM
+else
+  DFLAGSEBM = 
+endif
+
+#-----------------------------------------------------------------------
+
+#===========
+
+ifeq ($(HOST),mac)
+
+#  FF        = gfortran
+#  LL        = gfortran
+  FF        = ifort
+  LL        = ifort
+
+  ifeq ($(DEBUG),1)
+    DEBUGC = -g -traceback -fpe0
+    DEBUGL = -g -traceback -fpe0
+  else
+   #DEBUGC =
+   #DEBUGL =
+   DEBUGC = -O3
+   DEBUGL = -O3
+  endif
+
+  DFLAGS2 = -DMAC
+#  COMPFLAGS = -fdefault-real-8
+#  LOADFLAGS = -fdefault-real-8
+  COMPFLAGS = -r8 -fpe1 -diag-disable 8290 -diag-disable 7713
+  LOADFLAGS = -r8 -fpe1
+  LOADLIBS  = -L/opt/local/lib -L$(NA) -L/opt/local/lib/netcdf-devel/lib -lnetcdf
+  SPALIBS =
+
+endif
+
+#===========
+
+ifeq ($(HOST),sun)
+
+  FF = f77
+  LL = f77
+ #FF = f95
+ #LL = f95
+
+  ifeq ($(DEBUG),1)
+   #DEBUGC = -g
+    DEBUGC = -g -C
+   #DEBUGC = -g -C -xdebugformat=dwarf
+    DEBUGL = $(DEBUGC)
+  else
+   #DEBUGC = 
+   #DEBUGC = -O2
+    DEBUGC = -O3
+   #DEBUGC = -fast
+   #DEBUGC = -pg
+    DEBUGL = $(DEBUGC)
+  endif
+
+  ifeq ($(FF),f77)  
+    DFLAGS2 = -DF77  -DSUN
+  else
+    DFLAGS2 = -DF90  -DSUN
+  endif
+
+  COMPFLAGS = -xtypemap=real:64,double:64,integer:32
+ #            -erroff=WDECL_LOCAL_NOTUSED
+ #            -erroff=WDECL_ALIGN_PERF 
+ #            -errtags
+ #            -ftrap=%none
+  LOADFLAGS = -z muldefs -xarch=v8plus
+
+  LOADLIBS  = -L/opt/local/lib -L$(NA) -lnetcdf 
+
+  ifeq ($(DFLAGSPA),-DSLAP)
+    SPA = /iguana/s1/pollard/Glimmer/src/fortran/SLAP_library
+    SPALIBS = $(SPA)/libslap.a 
+  endif
+  
+  ifeq ($(DFLAGSPA),-DSUPERLU)
+    SPA = /iguana/s1/pollard/Sparse/superlu/SuperLU_MT
+    SPALIBS = $(SPA)/c_bridge_pdgssv.o $(SPA)/superlu_mt_SOLARIS.a \
+              $(SPA)/blas_SOLARIS.a -lm -lthread 
+  endif
+  
+  ifeq ($(DFLAGSPA),-DWATSON)
+    SPA = /iguana/s1/pollard/Sparse/wsmp-SunOS/lib
+    SPALIBS = -L$(SPA) -lwsmp \
+              -dalign -xlic_lib=sunperf -lpthread -lmopt -lmalloc -lrt
+  endif
+
+endif
+ 
+#===========
+
+ifeq ($(HOST),lion)
+
+  FF        = ifort
+  LL        = ifort
+
+  ifeq ($(DEBUG),1)
+    DEBUGC = -g -traceback -C
+    DEBUGL = -g -traceback -C
+  else
+    DEBUGC = -O3 -openmp
+    DEBUGL = -O3 -openmp
+   #DEBUGC = -O3
+   #DEBUGL = -O3
+  endif
+
+  DFLAGS2 = -DLION
+  COMPFLAGS = -r8 -fpe1 -align -diag-disable remark -warn nouncalled \
+              -check nooutput_conversion
+  LOADFLAGS = -r8 -fpe1 -align
+  LOADLIBS  = -L$(NA) -lnetcdf
+  SPALIBS =
+endif
+
+#===========
+
+ifeq ($(HOST),compute-0-1)
+
+  FF        = ifort
+  LL        = ifort
+
+  ifeq ($(DEBUG),1)
+    DEBUGC = -g
+    DEBUGL = -g
+  else
+    DEBUGC = -O3
+    DEBUGL = -O3
+  endif
+
+  DFLAGS2 = -DTERRA
+  COMPFLAGS = -r8 -fpe1 -i-static -align 
+  LOADFLAGS = -r8 -fpe1 -i-static -align
+  LOADLIBS  = -L$(NA) -lnetcdf
+  SPALIBS =
+endif
+ 
+#===========
+
+ifeq ($(HOST),condor)
+
+  FF        = ifort
+  LL        = ifort
+
+  ifeq ($(DEBUG),1)
+    DEBUGC = -g
+    DEBUGL = -g
+  else
+    DEBUGC = -O2
+    DEBUGL = -O2
+   #DEBUGC = -pg -O2
+   #DEBUGL = -pg -O2
+  endif
+
+  DFLAGS2 = -DCONDOR
+  COMPFLAGS = -r8 -fpe1 -i-static -align
+  LOADFLAGS = -r8 -fpe1 -i-static -align
+  LOADLIBS  = -L$(NA) -lnetcdf
+  SPALIBS =
+endif
+
+#===========
+
+ifeq ($(HOST),iguana)
+
+  FF        = ifort
+  LL        = ifort
+ #FF        = gfortran
+ #LL        = gfortran
+
+  ifeq ($(DEBUG),1)
+   #DEBUGC = -g
+    DEBUGC = -g -C -traceback
+    DEBUGL = -g
+  else
+    DEBUGC = -O3
+    DEBUGL = -O3
+  endif
+
+  DFLAGS2 = -DIGUANA
+  COMPFLAGS = -r8 -fpe1 -diag-disable 8290 -diag-disable 7713
+  LOADFLAGS = -r8 -fpe1
+ #COMPFLAGS = -fdefault-real-8
+ #LOADFLAGS = -fdefault-real-8
+
+  LOADLIBS  = -L$(NA) -lnetcdf
+  SPALIBS =
+endif
+ 
+#-----------------------------------------------------------------------
+
+icode   = $(shell cd $(DI) ; ls *.F)
+icodeo := $(addsuffix .o, $(basename $(icode)))
+
+ifeq ($(IFEBM),1)
+  ecode   = $(shell cd $(DE) ; ls *.F)
+  ecodeo := $(addsuffix .o, $(basename $(ecode)))
+  execname = sheetshelfebm.exe
+else
+  ecode   = 
+  ecodeo  = 
+  execname = sheetshelf.exe
+endif
+
+sheetshelf.exe: $(icodeo) $(ecodeo)
+	echo ' '
+	echo '** Linking $(execname)'
+	$(LL) $(DEBUGL) -o $(execname) \
+	    $(icodeo) $(ecodeo) \
+	    $(LOADFLAGS)           \
+	    $(LOADLIBS) $(SPALIBS) 
+
+*.h:
+	touch -a dummy.h
+
+#-----------------------------------------------------------------------
+
+$(icodeo) : %.o:%.F $(INCICE)
+
+ifeq ($(IFEBM),1)
+  $(ecodeo) : %.o:%.F $(INCEBM)
+endif
+
+.F.o:
+	echo ' '
+	echo '** Compiling $*.F'
+	$(FF) $(COMPFLAGS) $(DFLAGS) $(DFLAGS2) $(DFLAGSPA) $(DFLAGSEBM) $(DEBUGC) \
+	   $(IPATH) -c $<
+
+#-----------------------------------------------------------------------
