@@ -34,16 +34,18 @@ def get_all_output(exp_dirs, key_sig):
         df = sutils.read_output(path)
         esl = df['esl(m)'].iloc[-1]
         obj = dict()
+        params = key[1:-1].split(',')
+        print(params)
         for i, name in enumerate(key_sig):
-            obj[name] = key[i]
+            obj[name] = params[i]
         obj['esl'] = esl
         result.append(obj)
     return result
 
 
 if __name__ == '__main__':
-    dirs = json.loads(open(sys.argv[1]))
-    keys = json.loads(open(sys.argv[2]))
+    dirs = json.load(open(sys.argv[1]))
+    keys = json.load(open(sys.argv[2]))
     print("In parse output")
     print(dirs)
     print(keys)
