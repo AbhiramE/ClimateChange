@@ -37,7 +37,8 @@ def get_all_output(exp_dirs, key_sig):
 
 
 if __name__ == '__main__':
-    dirs, keys = sys.argv
+    dirs = json.loads(sys.argv[1])
+    keys = json.loads(sys.argv[2])
     print("In parse output")
     print(dirs)
     print(keys)
