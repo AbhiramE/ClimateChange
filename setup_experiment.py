@@ -25,6 +25,10 @@ qsub -wd /nfs/roc/home/aeswaran/climate/abhiram/ -b n -V -S /usr/bin/python3 -N 
 all.q@compute-0-1 setup_experiment.py 
 '''
 
+'''
+
+'''
+
 
 def parse_args():
     '''
@@ -119,6 +123,22 @@ def generate_make_file(make_file_path, param_dict):
                 out_file.write(line2)
 
 
+def get_final_output(directories, keys):
+    job_name = "output_parse_job"
+    command = "qsub -wd " + os.getcwd() + " -b n -V -S /usr/bin/python3 -N " + job_name + " -e " + job_name + \
+              ".err -o " + job_name + ".out  -q all.q@compute-0-1 parse_output.py "
+    env = os.environ.copy()
+    env['PATH'] = env['PATH'] + ":" + os.getcwd()
+    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+    out, err = process.communicate()
+    job_ids['ouput_job'] = out.split()[2]
+    log.info(out)
+    log.info(err)
+
+    log.info("Ouput parser job scheduled")
+    return job_ids
+
+
 if __name__ == '__main__':
     DCALVLIQs = np.random.uniform(0, 200, 2)  # 0 - 200 reasonable
     DCLIFFVMAXs = np.random.uniform(0, 12e3, 1)  # 0e3 - 12e3 reasonable
@@ -133,9 +153,4 @@ if __name__ == '__main__':
     while True in utils.is_job_running(job_ids):
         time.sleep(60)
 
-    # get the final output
-    res = utils.get_all_output(exp_dirs, key_sig)
-    with open(constants.FINAL_OUTPUT_FILE_NAME, 'w') as f:
-        json.dump(res, f)
-
-    log.info('%s\n', res)
+    job_ids = get_final_output(exp_dirs, key_sig)
