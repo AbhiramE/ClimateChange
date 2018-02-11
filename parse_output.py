@@ -35,9 +35,8 @@ def get_all_output(exp_dirs, key_sig):
         esl = df['esl(m)'].iloc[-1]
         obj = dict()
         params = key[1:-1].split(',')
-        print(params)
         for i, name in enumerate(key_sig):
-            obj[name] = params[i]
+            obj[name] = params[i].strip()
         obj['esl'] = esl
         result.append(obj)
     return result

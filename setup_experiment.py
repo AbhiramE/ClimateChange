@@ -87,7 +87,7 @@ def initiate_jobs(args):
             generate_make_file(directory + 'makeiceclif', param_dict)
 
             # submit the job in the Sun Grid Engine
-            command = "qsub -wd " + directory + " -b n -V -S /usr/bin/python3 -N " + job_name + " -e " + job_name + \
+            command = "qsub -wd " + directory + " -b n -V -S /usr/bin/python3 -l white=1 -N " + job_name + " -e " + job_name + \
                       ".err -o " + job_name + ".out  -q all.q@compute-0-1 run_experiment.py "
 
             env = os.environ.copy()
@@ -133,7 +133,7 @@ def get_final_output(directories, keys):
     with open('keys', 'w') as outfile:
         json.dump(keys, outfile)
 
-    command = "qsub -wd " + os.getcwd() + " -b n -V -S /usr/bin/python3 -N " + job_name + " -e " + job_name + \
+    command = "qsub -wd " + os.getcwd() + " -b n -V -S /usr/bin/python3 -l white=1 -N " + job_name + " -e " + job_name + \
               ".err -o " + job_name + ".out  -q all.q@compute-0-1 parse_output.py directories keys"
     env = os.environ.copy()
     env['PATH'] = env['PATH'] + ":" + os.getcwd()
