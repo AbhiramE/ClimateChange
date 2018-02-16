@@ -45,8 +45,14 @@ def source_gmake_and_run_job():
     out, err = process.communicate()
     log.info(out)
     log.info(err)
-    print("</run>")
 
+    # Delete files
+    delete_file_command = 'find . ! -name fort.22 ! -name *.out ! -name *.err -maxdepth 1 -type f -delete'
+    process = subprocess.Popen(delete_file_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = process.communicate()
+    log.info(out)
+    log.info(err)
+    print("</run>")
 
 if __name__ == '__main__':
     configure_logging()
