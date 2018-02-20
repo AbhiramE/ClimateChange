@@ -148,8 +148,8 @@ def get_final_output(directories, keys):
 
 
 if __name__ == '__main__':
-    DCALVLIQs = np.random.uniform(0, 200, 2)  # 0 - 200 reasonable
-    DCLIFFVMAXs = np.random.uniform(0, 12e3, 2)  # 0e3 - 12e3 reasonable
+    DCALVLIQs = np.random.uniform(0, 200, 100)  # 0 - 200 reasonable
+    DCLIFFVMAXs = np.random.uniform(0, 12e3, 100)  # 0e3 - 12e3 reasonable
     utils.configure_logging()
     args = parse_args()
 
