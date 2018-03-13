@@ -40,7 +40,7 @@ def parse_args():
     return args
 
 
-def initiate_jobs(args):
+def initiate_jobs(args, dcalvliqs, dcliffmaxs):
     '''
     Method to setup the directories for the different parameter combinations
     and initiate qsub jobs for each of them
@@ -65,8 +65,8 @@ def initiate_jobs(args):
     job_ids = dict()
 
     # setup for the different parameter combinations
-    for calvliq in DCALVLIQs:
-        for cliffmax in DCLIFFVMAXs:
+    for calvliq in dcalvliqs:
+        for cliffmax in dcliffmaxs:
             param_dict = dict()
             param_dict['calvliq'] = calvliq
             param_dict['cliffmax'] = cliffmax
@@ -154,7 +154,7 @@ if __name__ == '__main__':
     args = parse_args()
 
     key_sig = ['calvliq', 'cliffvmax']
-    exp_dirs, job_ids = initiate_jobs(args)
+    exp_dirs, job_ids = initiate_jobs(args, DCALVLIQs, DCLIFFVMAXs)
     log.info('Job Ids are %s\n', job_ids)
 
     # wait for all the jobs to finish
