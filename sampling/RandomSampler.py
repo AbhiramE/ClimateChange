@@ -26,19 +26,18 @@ class RandomSampler(Sample.Sampler):
         '''
         Constructor
 
-        This method assumes a uniform distribution over the parameter space
+        This method assumes a uniform distribution over the parameter space. The samples generated 
+        are unique.
         
         Args:
         ----
         num_samples: The number of samples to retrieve
         '''
-        low = []
-        high = []
+
         result = list()
 
-        for rng in self.param_ranges:
-            low.append(rng[0])
-            high.append(rng[1])
+        low = [x[0] for x in self.param_ranges]
+        high = [x[1] for x in self.param_ranges]
 
         while len(result) < num_samples:
             rand = np.random.uniform(low, high, size=(num_samples - len(result), len(self.param_ranges)))

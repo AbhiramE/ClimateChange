@@ -6,6 +6,7 @@ import time
 import json
 import pandas as pd
 import pickle
+import scipy.stats
 
 '''
 Unknowns:
@@ -27,7 +28,9 @@ def load_data(file):
 
 def get_probability_sea_level_rise(esl):
     '''Return some probability for a given esl'''
-    pass
+    # Guassian with mean 0.2 after discussion with Prof DeConto
+    # Dummy variance needs to be decided yet.
+    return scipy.stats.norm(0.002, 0.002).pdf(esl)
 
 
 def get_sea_level_rise(dclavliq, dcliffmax):
@@ -36,7 +39,7 @@ def get_sea_level_rise(dclavliq, dcliffmax):
     while True in utils.is_job_running(job_ids):
         time.sleep(60)
 
-    job_ids = se.get_final_output(exp_dirs, key_sig)
+    se.get_final_output(exp_dirs, key_sig)
     data = load_data('final_result.out')
     esl = data[0, 2]
     return get_probability_sea_level_rise(esl)
