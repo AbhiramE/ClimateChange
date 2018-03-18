@@ -1,7 +1,8 @@
-import Sampler
+import sampling.Sampler as Sample
 import numpy as np
 
-class RandomSampler(Sampler.Sampler):
+
+class RandomSampler(Sample.Sampler):
     '''
     Class for performing random sampling
     '''
@@ -21,7 +22,6 @@ class RandomSampler(Sampler.Sampler):
         super().__init__(param_names, param_ranges)
         return
 
-
     def sample(self, num_samples):
         '''
         Constructor
@@ -33,17 +33,17 @@ class RandomSampler(Sampler.Sampler):
         ----
         num_samples: The number of samples to retrieve
         '''
-        result=list()
 
-        low=[x[0] for x in self.param_ranges]
-        high=[x[1] for x in self.param_ranges] 
+        result = list()
 
-        while len(result)<num_samples:
-            rand=np.random.uniform(low,high,size=(num_samples-len(result), len(self.param_ranges)))
-            size=(num_samples-len(result), len(self.param_ranges))
-            rand=np.unique(rand, axis=0)
+        low = [x[0] for x in self.param_ranges]
+        high = [x[1] for x in self.param_ranges]
+
+        while len(result) < num_samples:
+            rand = np.random.uniform(low, high, size=(num_samples - len(result), len(self.param_ranges)))
+            size = (num_samples - len(result), len(self.param_ranges))
+            rand = np.unique(rand, axis=0)
             for i in range(0, rand.shape[0]):
                 result.append(list(rand[i]))
 
-        
         return result

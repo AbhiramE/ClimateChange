@@ -1,5 +1,7 @@
-from abc import ABC, abstractmethod 
-class Sampler:
+from abc import abstractmethod
+
+
+class Sampler(object):
     '''
     Base class for all the different sampling methods
     '''
@@ -15,8 +17,8 @@ class Sampler:
         list must be a tuple of the form (r_beg, r_end) where r_beg and r_end denote
         the minimum and maximum values respectively for the parameter range
         '''
-        self.param_names=param_names
-        self.param_ranges=param_ranges 
+        self.param_names = param_names
+        self.param_ranges = param_ranges
         super().__init__()
         return
 
@@ -30,5 +32,3 @@ class Sampler:
         num_samples: The number of samples to return 
         '''
         pass
-
-

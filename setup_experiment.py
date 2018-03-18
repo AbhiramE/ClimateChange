@@ -40,7 +40,7 @@ def parse_args():
     return args
 
 
-def initiate_jobs(args):
+def initiate_jobs(args, dcalvliqs=None, dcliffmaxs=None):
     '''
     Method to setup the directories for the different parameter combinations
     and initiate qsub jobs for each of them
@@ -56,6 +56,7 @@ def initiate_jobs(args):
     job_ids: A dictionary where each parameter combination tuple is key
     and the Sun Grid Engine job id is the value 
     '''
+    global DCLIFFVMAXs, DCALVLIQs
     exp_dir = os.getcwd() + '/' + args.exp_dir
     try:
         os.mkdir(exp_dir)
@@ -63,6 +64,12 @@ def initiate_jobs(args):
         pass
     exp_dirs = dict()
     job_ids = dict()
+
+    if dcalvliqs is not None:
+        DCALVLIQs = dcalvliqs
+
+    if dcliffmaxs is not None:
+        DCLIFFVMAXs = dcliffmaxs
 
     # setup for the different parameter combinations
     for calvliq in DCALVLIQs:
@@ -124,7 +131,7 @@ def generate_make_file(make_file_path, param_dict):
                 out_file.write(line2)
 
 
-def get_final_output(directories, keys):
+def get_final_output(directories, keys, final_output_file=None):
     job_name = "output_parse_job"
 
     with open('directories', 'w') as outfile:
@@ -133,8 +140,14 @@ def get_final_output(directories, keys):
     with open('keys', 'w') as outfile:
         json.dump(keys, outfile)
 
-    command = "qsub -wd " + os.getcwd() + " -b n -V -S /usr/bin/python3 -l white=1 -N " + job_name + " -e " + job_name + \
-              ".err -o " + job_name + ".out  -q all.q@compute-0-1 parse_output.py directories keys"
+    if final_output_file is None:
+        command = "qsub -wd " + os.getcwd() + " -b n -V -S /usr/bin/python3 -l white=1 -N " + job_name + " -e " + job_name + \
+                  ".err -o " + job_name + ".out  -q all.q@compute-0-1 parse_output.py directories keys"
+    else:
+        command = "qsub -wd " + os.getcwd() + " -b n -V -S /usr/bin/python3 -l white=1 -N " + job_name + " -e " + \
+                  job_name + ".err -o " + job_name + \
+                  ".out  -q all.q@compute-0-1 parse_output.py directories keys --out_file="+final_output_file
+
     env = os.environ.copy()
     env['PATH'] = env['PATH'] + ":" + os.getcwd()
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
@@ -154,7 +167,7 @@ if __name__ == '__main__':
     args = parse_args()
 
     key_sig = ['calvliq', 'cliffvmax']
-    exp_dirs, job_ids = initiate_jobs(args)
+    exp_dirs, job_ids = initiate_jobs(args, DCALVLIQs, DCLIFFVMAXs)
     log.info('Job Ids are %s\n', job_ids)
 
     # wait for all the jobs to finish
