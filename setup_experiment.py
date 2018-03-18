@@ -40,7 +40,7 @@ def parse_args():
     return args
 
 
-def initiate_jobs(args, dcalvliqs, dcliffmaxs):
+def initiate_jobs(args, dcalvliqs=None, dcliffmaxs=None):
     '''
     Method to setup the directories for the different parameter combinations
     and initiate qsub jobs for each of them
@@ -56,6 +56,7 @@ def initiate_jobs(args, dcalvliqs, dcliffmaxs):
     job_ids: A dictionary where each parameter combination tuple is key
     and the Sun Grid Engine job id is the value 
     '''
+    global DCLIFFVMAXs, DCALVLIQs
     exp_dir = os.getcwd() + '/' + args.exp_dir
     try:
         os.mkdir(exp_dir)
@@ -64,9 +65,15 @@ def initiate_jobs(args, dcalvliqs, dcliffmaxs):
     exp_dirs = dict()
     job_ids = dict()
 
+    if dcalvliqs is not None:
+        DCALVLIQs = dcalvliqs
+
+    if dcliffmaxs is not None:
+        DCLIFFVMAXs = dcliffmaxs
+
     # setup for the different parameter combinations
-    for calvliq in dcalvliqs:
-        for cliffmax in dcliffmaxs:
+    for calvliq in DCALVLIQs:
+        for cliffmax in DCLIFFVMAXs:
             param_dict = dict()
             param_dict['calvliq'] = calvliq
             param_dict['cliffmax'] = cliffmax
