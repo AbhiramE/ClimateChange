@@ -8,6 +8,7 @@ import constants
 import json
 import sys
 import logging as log
+import scoring as scr
 
 
 def get_all_output(exp_dirs, key_sig):
@@ -37,7 +38,7 @@ def get_all_output(exp_dirs, key_sig):
         params = key[1:-1].split(',')
         for i, name in enumerate(key_sig):
             obj[name] = params[i].strip()
-        obj['esl'] = esl
+        obj[ESL_VAR]=esl
         result.append(obj)
     return result
 

@@ -12,6 +12,7 @@ import glob
 import logging as log
 import os
 import subprocess
+import constants
 
 
 def configure_logging(log_level=log.INFO):
@@ -61,4 +62,31 @@ def is_job_running(job_ids):
     return job_running
 
 
+
+def parse_json_output_to_dict(param_names, result):
+    '''
+    Method to parse the array of json objects containing the
+    output of the model to array
+
+    Args:
+    ----
+    param_names: A list of parameter names
+    result: The output json array 
+
+    Return:
+    ----
+    A dictionary with the parameter combination as the key (parameters ordered in same
+    manner as param_names) and the result value as value 
+    '''
+    
+    out=dict()
+    for obj in result:
+        param_tuple=[]
+        for param in param_names:
+            param_tuple.append(obj[param])
+
+        # param_tuple=tuple(param_tuple)
+        out[param_tuple]=obj[constants.ESL_VAR]
+
+    return out
 

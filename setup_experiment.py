@@ -19,6 +19,7 @@ import constants
 import utils
 import time
 import json
+from sampling import ImportanceSampler as isam
 
 '''
 qsub -wd /nfs/roc/home/aeswaran/climate/abhiram/ -b n -V -S /usr/bin/python3 -N setup -e setup.err -o setup.out  -q 
@@ -40,13 +41,14 @@ def parse_args():
     return args
 
 
-def initiate_jobs(args):
+def initiate_jobs(args, samples, param_names):
     '''
     Method to setup the directories for the different parameter combinations
     and initiate qsub jobs for each of them
     
     Args:
     args: A dictionary containing the parsed command line arguments
+    samples: The parameter samples on which to run the jobs
 
     Returns:
     ----
@@ -64,40 +66,37 @@ def initiate_jobs(args):
     exp_dirs = dict()
     job_ids = dict()
 
-    # setup for the different parameter combinations
-    for calvliq in DCALVLIQs:
-        for cliffmax in DCLIFFVMAXs:
-            param_dict = dict()
-            param_dict['calvliq'] = calvliq
-            param_dict['cliffmax'] = cliffmax
-            key = (calvliq, cliffmax)
-            key = str(key)
-            job_name = 'run_' + str(calvliq) + '_' + str(cliffmax)
-            directory = exp_dir + job_name + '/'
-            exp_dirs[key] = directory
-            try:
-                os.mkdir(directory)
-            except Exception as e:
-                print(e)
 
-            copyfile(constants.BOOTSTRAP_DIR + 'restartin',
-                     directory + 'restartin')  # file is big, can we make symlink instead?
-            copyfile(constants.BOOTSTRAP_DIR + 'comicegrid.h', directory + 'comicegrid.h')
-            copyfile(constants.BOOTSTRAP_DIR + 'crhmelfilein', directory + 'crhmelfilein')
-            generate_make_file(directory + 'makeiceclif', param_dict)
+    for sample in samples:
+        param_dict=dict()
+        for i in range(0,len(sample)):
+            param_dict[param_names[i]]=sample[i]
+        key=str(sample) # key must be immutable
+        job_name=['run']+[str(s) for s in sample]
+        job_name='_'.join(job_name)
+        directory=exp_dir+job_name+'/'
+        exp_dirs[key] = directory
+        try:
+            os.mkdir(directory)
+        except Exception as e:
+            log.error(e)
+        copyfile(constants.BOOTSTRAP_DIR + 'restartin',
+                 directory + 'restartin')  # file is big, can we make symlink instead?
+        copyfile(constants.BOOTSTRAP_DIR + 'comicegrid.h', directory + 'comicegrid.h')
+        copyfile(constants.BOOTSTRAP_DIR + 'crhmelfilein', directory + 'crhmelfilein')
+        generate_make_file(directory + 'makeiceclif', param_dict)
 
-            # submit the job in the Sun Grid Engine
-            command = "qsub -wd " + directory + " -b n -V -S /usr/bin/python3 -l white=1 -N " + job_name + " -e " + job_name + \
-                      ".err -o " + job_name + ".out  -q all.q@compute-0-1 run_experiment.py "
-
-            env = os.environ.copy()
-            env['PATH'] = env['PATH'] + ":" + os.getcwd()
-            process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
-            out, err = process.communicate()
-            job_ids[key] = out.split()[2]
-            log.info(out)
-            log.info(err)
+        # submit the job in the Sun Grid Engine
+        command = "qsub -wd " + directory + " -b n -V -S /usr/bin/python3 -l white=1 -N " + job_name + " -e " + job_name + ".err -o " + job_name + ".out  -q all.q@compute-0-1 run_experiment.py "
+        env = os.environ.copy()
+        env['PATH'] = env['PATH'] + ":" + os.getcwd()
+        process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+        out, err = process.communicate()
+        job_ids[key] = out.split()[2]
+        log.info(out)
+        log.info(err)
     log.info("Done with make_directories")
+        
     return exp_dirs, job_ids
 
 
@@ -118,7 +117,7 @@ def generate_make_file(make_file_path, param_dict):
                 if 'DCALVLIQ' in line:
                     line2 = line.replace('PARAM', str(param_dict['calvliq']))
                 elif 'DCLIFFVMAX' in line:
-                    line2 = line.replace('PARAM', str(param_dict['cliffmax']))
+                    line2 = line.replace('PARAM', str(param_dict['cliffvmax']))
                 else:
                     line2 = line
                 out_file.write(line2)
@@ -148,17 +147,51 @@ def get_final_output(directories, keys):
 
 
 if __name__ == '__main__':
-    DCALVLIQs = np.random.uniform(0, 200, 100)  # 0 - 200 reasonable
-    DCLIFFVMAXs = np.random.uniform(0, 12e3, 100)  # 0e3 - 12e3 reasonable
+    # DCALVLIQs = np.random.uniform(0, 200, 100)  # 0 - 200 reasonable
+    # DCLIFFVMAXs = np.random.uniform(0, 12e3, 100)  # 0e3 - 12e3 reasonable
+    # utils.configure_logging()
+    # args = parse_args()
+
+    # key_sig = ['calvliq', 'cliffvmax']
+    # exp_dirs, job_ids = initiate_jobs(args)
+    # log.info('Job Ids are %s\n', job_ids)
+
+    # # wait for all the jobs to finish
+    # while True in utils.is_job_running(job_ids):
+    #     time.sleep(60)
+
+    # job_ids = get_final_output(exp_dirs, key_sig)
+
+    param_names=['calvliq','cliffvmax']
+    param_ranges=[(0,200),(0,12e3)]
     utils.configure_logging()
-    args = parse_args()
+    args=parse_args()
 
-    key_sig = ['calvliq', 'cliffvmax']
-    exp_dirs, job_ids = initiate_jobs(args)
-    log.info('Job Ids are %s\n', job_ids)
+    n_samples=30
+    n_generations=5
+    covar_matrix=np.array([[1, 0], [0, 1]])
+    imp_sampler= isam.ImportanceSampler(param_names,param_ranges,covar_matrix)
+    for i in range(0,n_generations):
+        samples=imp_sampler.sample(n_samples)
+        exp_dirs, job_ids = initiate_jobs(args, samples, param_names)
+        log.info('Job initiated for %d generation\n',i+1)
 
-    # wait for all the jobs to finish
-    while True in utils.is_job_running(job_ids):
-        time.sleep(60)
+        # Wait for the spawned jobs to finish
+        while True in utils.is_job_running(job_ids):
+            time.sleep(120) 
 
-    job_ids = get_final_output(exp_dirs, key_sig)
+        # schedule the job to collect the output 
+        job_ids = get_final_output(exp_dirs, param_names)
+        # Wait for the spawned jobs to finish
+        while True in utils.is_job_running(job_ids):
+            time.sleep(120) 
+
+        # read the esl output
+        score_dict=utils.parse_json_output_to_dict(param_names,result)
+
+        # convert the esl values to score
+        for k,v in score_dict.items():
+            score_dict[k]=scoring.binary_score(v,constants.DESIRED_ESL_RANGE)
+
+        # Update the scores in importance sampler object
+        imp_sampler.update_scores(score_dict)

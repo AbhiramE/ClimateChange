@@ -1,5 +1,5 @@
-import Sampler
-import RandomSampler as rs
+from . import Sampler
+from . import RandomSampler as rs
 import numpy as np
 import operator
 
@@ -74,17 +74,17 @@ class ImportanceSampler(Sampler.Sampler):
 
         # check if we have done sampling before
         if len(self.sample_scores.keys()) == 0:
-            iteration+=1
+            self.iteration+=1
             # perform random sampling
             sampler=rs.RandomSampler(self.param_names, self.param_ranges)
             points=sampler.sample(num_samples)
             return points
 
         else:
-            iteration+=1
+            self.iteration+=1
 
             # Remove points if needed
-            if iteration%self.remove_every==0:
+            if self.iteration%self.remove_every==0:
                 sort_pt=sorted(self.sample_scores.items(), key=operator.itemgetter(1))
                 sort_pt=sort_pt[-1*self.remove_sample_count:]
                 sort_pt=[x[0] for x in sort_pt]
@@ -97,10 +97,10 @@ class ImportanceSampler(Sampler.Sampler):
             new_points=set() # using set to handle duplicate detection
             
             # determine if random samples need to be introduced
-            if iteration%self.random_every==0:
+            if self.iteration%self.random_every==0:
                 num_samples=num_samples-self.random_sample_count
-                rs=RandomSampler(self.param_names,self.param_ranges)
-                new_points.update(rs.sample(self.random_sample_count))
+                r=rs.RandomSampler(self.param_names,self.param_ranges)
+                new_points.update(r.sample(self.random_sample_count))
             # sample n points based on the distribution. I'll be sampling the indices of the
             # points here
             points=dist.keys()

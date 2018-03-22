@@ -1,4 +1,4 @@
-import Sampler
+from . import Sampler
 import numpy as np
 
 class RandomSampler(Sampler.Sampler):
