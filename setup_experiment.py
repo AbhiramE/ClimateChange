@@ -123,7 +123,7 @@ def generate_make_file(make_file_path, param_dict):
                 out_file.write(line2)
 
 
-def get_final_output(directories, keys):
+def get_final_output(directories, keys, final_output_file=None):
     job_name = "output_parse_job"
 
     with open('directories', 'w') as outfile:
@@ -132,8 +132,14 @@ def get_final_output(directories, keys):
     with open('keys', 'w') as outfile:
         json.dump(keys, outfile)
 
-    command = "qsub -wd " + os.getcwd() + " -b n -V -S /usr/bin/python3 -l white=1 -N " + job_name + " -e " + job_name + \
-              ".err -o " + job_name + ".out  -q all.q@compute-0-1 parse_output.py directories keys"
+    if final_output_file is None:
+        command = "qsub -wd " + os.getcwd() + " -b n -V -S /usr/bin/python3 -l white=1 -N " + job_name + " -e " + job_name + \
+                  ".err -o " + job_name + ".out  -q all.q@compute-0-1 parse_output.py directories keys"
+    else:
+        command = "qsub -wd " + os.getcwd() + " -b n -V -S /usr/bin/python3 -l white=1 -N " + job_name + " -e " + \
+                  job_name + ".err -o " + job_name + \
+                  ".out  -q all.q@compute-0-1 parse_output.py directories keys --out_file="+final_output_file
+
     env = os.environ.copy()
     env['PATH'] = env['PATH'] + ":" + os.getcwd()
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)

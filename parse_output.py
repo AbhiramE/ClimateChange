@@ -8,7 +8,17 @@ import constants
 import json
 import sys
 import logging as log
-import scoring as scr
+import argparse
+
+
+def parse_args():
+    '''
+    Method to parse command line arguments
+    '''
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--out_file', type=str, default='final_result.out')
+    args = parser.parse_args()
+    return args
 
 
 def get_all_output(exp_dirs, key_sig):
@@ -46,11 +56,11 @@ def get_all_output(exp_dirs, key_sig):
 if __name__ == '__main__':
     dirs = json.load(open(sys.argv[1]))
     keys = json.load(open(sys.argv[2]))
+    args =  parse_args()
     print("In parse output")
-    print(dirs)
-    print(keys)
+    output_file = args.out_file
     res = get_all_output(dirs, keys)
-    with open(constants.FINAL_OUTPUT_FILE_NAME, 'w') as f:
+    with open(output_file, 'w') as f:
         json.dump(res, f)
 
     log.info('%s\n', res)

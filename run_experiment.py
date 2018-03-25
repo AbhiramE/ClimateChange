@@ -10,13 +10,11 @@ Abhiram Eswaran: aeswaran@cs.umass.edu
 '''
 import os
 import sys
-import json
 
 paths = os.environ['PATH'].split(':')
 sys.path.append(paths[-1])
 import subprocess
 import constants
-import sge_utils as sutils
 from utils import configure_logging, purge
 import logging as log
 
@@ -53,6 +51,7 @@ def source_gmake_and_run_job():
     log.info(out)
     log.info(err)
     print("</run>")
+
 
 if __name__ == '__main__':
     configure_logging()

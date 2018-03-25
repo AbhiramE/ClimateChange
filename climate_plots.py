@@ -1,9 +1,8 @@
-import numpy as np
-import pandas as pd
 import json
+
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from IPython import embed
+import pandas as pd
+
 
 def plot3d(output):
     data = json.load(open(output))
