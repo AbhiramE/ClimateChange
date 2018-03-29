@@ -20,7 +20,10 @@ def configure_logging(log_level=log.INFO):
     Method to configure the logger
     '''
     # Rewrite log
-    # log.basicConfig(filename='setup_script.log', filemode='w', level=log_level)
+    
+    # log.basicConfig(filename='setup_script.log', filemode='w',
+    # level=log_level)
+    
     log.basicConfig(level=log_level)
 
 
@@ -48,7 +51,8 @@ def is_job_running(job_ids):
     -----
     A list l where l[i] = True denotes that job_ids[i] is running
     '''
-    process = subprocess.Popen('qstat', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(
+        'qstat', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = process.communicate()
     out = str(out, 'utf-8')
     # print(bytes(out, "utf-8").decode("unicode_escape"))
@@ -62,10 +66,8 @@ def is_job_running(job_ids):
     return job_running
 
 
-
 def parse_json_output_to_dict(param_names, result):
-    '''
-    Method to parse the array of json objects containing the
+    '''Method to parse the array of json objects containing the
     output of the model to array
 
     Args:
@@ -75,18 +77,20 @@ def parse_json_output_to_dict(param_names, result):
 
     Return:
     ----
-    A dictionary with the parameter combination as the key (parameters ordered in same
-    manner as param_names) and the result value as value 
-    '''
     
-    out=dict()
+    A dictionary with the parameter combination as the key (parameters
+    ordered in same manner as param_names) and the result value as
+    value
+
+    '''
+
+    out = dict()
     for obj in result:
-        param_tuple=[]
+        param_tuple = []
         for param in param_names:
             param_tuple.append(obj[param])
 
-        # param_tuple=tuple(param_tuple)
-        out[param_tuple]=obj[constants.ESL_VAR]
+        param_tuple=tuple(param_tuple) # list can't be hashed
+        out[param_tuple] = obj[constants.ESL_VAR]
 
     return out
-
