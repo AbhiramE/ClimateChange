@@ -80,7 +80,8 @@ class ImportanceSampler(Sampler.Sampler):
         super().__init__(param_names, param_ranges)
         if covar_matrix is not None:
             self.covar_matrix = covar_matrix
-            self._covar_matrix = covar_matrix  # This is used while updating covar 
+            self._covar_matrix = covar_matrix  # This is used while
+            # updating covar
         else:
             rng = [x[1] - x[0] for x in self.param_ranges]
             self.covar_matrix = np.identity(len(param_names)) * rng
@@ -127,9 +128,6 @@ class ImportanceSampler(Sampler.Sampler):
                 for sample in sort_pt:
                     del self.sample_scores[sample]
 
-                    
-
-            
             # sample by creating a distribution
             dist = self._create_dist()
             new_points = set()  # using set to handle duplicate detection
@@ -139,10 +137,12 @@ class ImportanceSampler(Sampler.Sampler):
                 num_samples = num_samples - self.random_sample_count
                 r = rs.RandomSampler(self.param_names, self.param_ranges)
                 new_points.update(r.sample(self.random_sample_count))
+                print("Printing values after introducing random samples")
+                print(new_points)
             # sample n points based on the distribution. I'll be
             # sampling the indices of the points here
-            points = dist.keys()
-            prob = dist.values()
+            points = list(dist.keys())
+            prob = list(dist.values())
             indices = np.random.choice(
                 np.arange(0, len(points)), num_samples, p=prob)
 
@@ -162,14 +162,14 @@ class ImportanceSampler(Sampler.Sampler):
 
                 # Probably would be computationally efficient
                 # if we remove duplicate handling
-
-                while sample in new_points or (all(low <= sample)
-                                               and all(sample <= high)):
+                sample = tuple(sample)  # list and array not hashable
+                while sample in new_points or (all(low > sample)
+                                               or all(sample > high)):
                     sample = np.random.multivariate_normal(
                         points[idx], self.covar_matrix)
                     sample = sample.reshape(-1)  # turn it into a row vector
 
-                new_points.update(list(sample))
+                new_points.add(sample)
             return new_points
         return
 
@@ -184,7 +184,8 @@ class ImportanceSampler(Sampler.Sampler):
         self.sample_scores.update(score_dict)
 
     def _create_dist(self):
-        '''Method to create a distribution based upon the sample scores stored
+        '''
+        Method to create a distribution based upon the sample scores stored
         
         This method creates the distribution by performing softmax
         normalization over the scores
@@ -203,7 +204,7 @@ class ImportanceSampler(Sampler.Sampler):
         # https://stackoverflow.com/questions/835092/python-dictionary-are-keys-and-values-always-the-same-order
 
         samples = self.sample_scores.keys()
-        scores = self.sample_scores.values()
+        scores = list(self.sample_scores.values())
         distr = self._softmax(scores)
         dist = dict()
         for i, sample in enumerate(samples):
@@ -211,7 +212,8 @@ class ImportanceSampler(Sampler.Sampler):
         return dist
 
     def _softmax(self, scores):
-        '''Method to perform softmax normalization over the scores
+        '''
+        Method to perform softmax normalization over the scores
 
         Args:
         ----
@@ -242,7 +244,8 @@ class ImportanceSampler(Sampler.Sampler):
         n_samples = len(self.sample_scores)
         dim = len(self.param_names)
         if n_samples != 0:
-            self.covar_matrix = self._covar_matrix / np.power(n, 1.0 / dim)
+            self.covar_matrix = self._covar_matrix / np.power(
+                n_samples, 1.0 / dim)
         else:
             self.covar_matrix = self._covar_matrix
         return

@@ -1,10 +1,14 @@
 #!/usr/bin/python3
 '''
 This file is the parent process run in the head node, it spawns
- the compute jobs for different parameter combinations and gets the
- final result back Authors: Abhay Mittal: abhaymittal@cs.umass.edu
- Abhiram Eswaran: aeswaran@cs.umass.edu Ryan Mckenna:
- rmckenna@cs.umass.edu
+the compute jobs for different parameter combinations and gets the
+final result back
+
+Authors:
+
+Abhay Mittal: abhaymittal@cs.umass.edu
+Abhiram Eswaran: aeswaran@cs.umass.edu
+Ryan Mckenna: rmckenna@cs.umass.edu
 
 '''
 
@@ -37,7 +41,7 @@ def initiate_jobs(args, samples, param_names):
     '''
     Method to setup the directories for the different parameter combinations
     and initiate qsub jobs for each of them
-    
+
     Args:
     args: A dictionary containing the parsed command line arguments
     samples: The parameter samples on which to run the jobs
@@ -143,7 +147,8 @@ def get_final_output(directories, keys, final_output_file=None):
                   + " -b n -V -S /usr/bin/python3 -l white=1 -N " + job_name\
                   + " -e " + job_name + ".err -o " + job_name + \
                   ".out  -q all.q@compute-0-1 parse_output.py " \
-                  + " --dir_dict_file=directories --param_name_tuple_file=keys"\
+                  + " --dir_dict_file=directories " \
+                  + "--param_name_tuple_file=keys" \
                   + " --out_file="+final_output_file
 
     env = os.environ.copy()
@@ -203,8 +208,8 @@ if __name__ == '__main__':
     n_samples = 10
     n_generations = 5
     covar_matrix = np.array([[1, 0], [0, 1]])
-    imp_sampler = isam.ImportanceSampler(param_names, param_ranges,
-                                         covar_matrix)
+    imp_sampler = isam.ImportanceSampler(param_names, param_ranges)
+                                         
     for i in range(0, n_generations):
         samples = imp_sampler.sample(n_samples)
         exp_dirs, job_ids = initiate_jobs(args, samples, param_names)
@@ -213,7 +218,8 @@ if __name__ == '__main__':
         wait_for(job_ids)
 
         # output_file
-        output_file = args.exp_dir + constants.FINAL_OUTPUT_FILE_NAME + "_"+str(i)
+        output_file = args.exp_dir + constants.FINAL_OUTPUT_FILE_NAME \
+            + "_" + str(i)
 
         # Get the final output in a json file
         job_id = get_final_output(exp_dirs, param_names, output_file)
@@ -225,14 +231,15 @@ if __name__ == '__main__':
 
         # read the esl output
         with open(output_file) as fl:
-            score_dict = utils.parse_json_output_to_dict(param_names,
-                                                         json.load(fl))
+            score_dict = utils.parse_json_output_to_dict(
+                param_names, json.load(fl))
 
         # convert the esl values to score
         for k, v in score_dict.items():
-            score_dict[k] = scoring.binary_score(v,
-                                                 constants.DESIRED_ESL_RANGE)[0]
+            # score_dict[k] = scoring.binary_score([v],
+            #                                      constants.DESIRED_ESL_RANGE)
+            score_dict[k] = scoring.gaussian_score([v])
+            score_dict[k] = score_dict[k][0]
 
-        print(score_dict)
         # Update the scores in importance sampler object
         imp_sampler.update_scores(score_dict)

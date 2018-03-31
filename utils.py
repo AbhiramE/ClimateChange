@@ -88,9 +88,9 @@ def parse_json_output_to_dict(param_names, result):
     for obj in result:
         param_tuple = []
         for param in param_names:
-            param_tuple.append(obj[param])
+            param_tuple.append(float(obj[param]))
 
-        param_tuple=tuple(param_tuple) # list can't be hashed
+        param_tuple = tuple(param_tuple)  # list can't be hashed
         out[param_tuple] = obj[constants.ESL_VAR]
 
     return out
