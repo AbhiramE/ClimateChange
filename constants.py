@@ -12,4 +12,4 @@ MAX_CLIFFMAX = 12e3
 # Configuration for calculating ESL derivative
 YR_BEG = 'year_begin'
 YR_END = 'year_end'
-ESL_DER = {YR_BEG: 0, YR_END: 2}
+ESL_DER = {YR_BEG: 50, YR_END: 67}

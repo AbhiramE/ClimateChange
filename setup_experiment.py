@@ -205,8 +205,8 @@ if __name__ == '__main__':
     utils.configure_logging()
     args = parse_args()
 
-    n_samples = 10
-    n_generations = 5
+    n_samples = 96
+    n_generations = 7
     covar_matrix = np.array([[1, 0], [0, 1]])
     imp_sampler = isam.ImportanceSampler(param_names, param_ranges)
                                          
@@ -219,7 +219,7 @@ if __name__ == '__main__':
 
         # output_file
         output_file = args.exp_dir + constants.FINAL_OUTPUT_FILE_NAME \
-            + "_" + str(i)
+            + "_" + str(i + 1)
 
         # Get the final output in a json file
         job_id = get_final_output(exp_dirs, param_names, output_file)

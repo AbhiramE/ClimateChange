@@ -137,8 +137,6 @@ class ImportanceSampler(Sampler.Sampler):
                 num_samples = num_samples - self.random_sample_count
                 r = rs.RandomSampler(self.param_names, self.param_ranges)
                 new_points.update(r.sample(self.random_sample_count))
-                print("Printing values after introducing random samples")
-                print(new_points)
             # sample n points based on the distribution. I'll be
             # sampling the indices of the points here
             points = list(dist.keys())
