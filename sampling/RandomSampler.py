@@ -43,6 +43,6 @@ class RandomSampler(Sampler.Sampler):
                 size=(num_samples - len(result), len(self.param_ranges)))
             rand = np.unique(rand, axis=0)
             for i in range(0, rand.shape[0]):
-                result.append(list(rand[i]))
+                result.append(tuple(rand[i]))
 
         return result

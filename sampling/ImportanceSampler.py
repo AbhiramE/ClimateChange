@@ -38,11 +38,12 @@ class ImportanceSampler(Sampler.Sampler):
     def __init__(self,
                  param_names,
                  param_ranges,
-                 covar_matrix,
+                 covar_matrix=None,
                  random_every=5,
                  random_sample_count=10,
                  remove_every=5,
-                 remove_sample_count=5):
+                 remove_sample_count=5,
+                 softmax_alpha=100):
         '''
 
         Constructor
@@ -73,13 +74,23 @@ class ImportanceSampler(Sampler.Sampler):
 
         remove_sample_count: The number of poor samples to remove
 
+        softmax_alpha: The value of the multiplier for the softmax exponent
+
         '''
         super().__init__(param_names, param_ranges)
-        self.covar_matrix = covar_matrix
+        if covar_matrix is not None:
+            self.covar_matrix = covar_matrix
+            self._covar_matrix = covar_matrix  # This is used while
+            # updating covar
+        else:
+            rng = [x[1] - x[0] for x in self.param_ranges]
+            self.covar_matrix = np.identity(len(param_names)) * rng
+            self._covar_matrix = self.covar_matrix
         self.random_every = random_every
         self.random_sample_count = random_sample_count
         self.remove_every = remove_every
         self.remove_sample_count = remove_sample_count
+        self.softmax_alpha = softmax_alpha
 
         self.sample_scores = dict()  # dictionary of sample, score
         self.iteration = 0  # denotes the current iteration
@@ -128,13 +139,17 @@ class ImportanceSampler(Sampler.Sampler):
                 new_points.update(r.sample(self.random_sample_count))
             # sample n points based on the distribution. I'll be
             # sampling the indices of the points here
-            points = dist.keys()
-            prob = dist.values()
+            points = list(dist.keys())
+            prob = list(dist.values())
             indices = np.random.choice(
                 np.arange(0, len(points)), num_samples, p=prob)
 
             low = np.array([x[0] for x in self.param_ranges])
             high = np.array([x[1] for x in self.param_ranges])
+
+            # update the covariance matrix before generating random
+            # samples from the distribution
+            self._update_covar()
 
             # For each index, create a gaussian with the point at the
             # index as the mean and sample a new point
@@ -145,14 +160,14 @@ class ImportanceSampler(Sampler.Sampler):
 
                 # Probably would be computationally efficient
                 # if we remove duplicate handling
-
-                while sample in new_points or (all(low <= sample)
-                                               and all(sample <= high)):
+                sample = tuple(sample)  # list and array not hashable
+                while sample in new_points or (all(low > sample)
+                                               or all(sample > high)):
                     sample = np.random.multivariate_normal(
                         points[idx], self.covar_matrix)
                     sample = sample.reshape(-1)  # turn it into a row vector
 
-                new_points.update(list(sample))
+                new_points.add(sample)
             return new_points
         return
 
@@ -167,7 +182,8 @@ class ImportanceSampler(Sampler.Sampler):
         self.sample_scores.update(score_dict)
 
     def _create_dist(self):
-        '''Method to create a distribution based upon the sample scores stored
+        '''
+        Method to create a distribution based upon the sample scores stored
         
         This method creates the distribution by performing softmax
         normalization over the scores
@@ -186,7 +202,7 @@ class ImportanceSampler(Sampler.Sampler):
         # https://stackoverflow.com/questions/835092/python-dictionary-are-keys-and-values-always-the-same-order
 
         samples = self.sample_scores.keys()
-        scores = self.sample_scores.values()
+        scores = list(self.sample_scores.values())
         distr = self._softmax(scores)
         dist = dict()
         for i, sample in enumerate(samples):
@@ -194,7 +210,8 @@ class ImportanceSampler(Sampler.Sampler):
         return dist
 
     def _softmax(self, scores):
-        '''Method to perform softmax normalization over the scores
+        '''
+        Method to perform softmax normalization over the scores
 
         Args:
         ----
@@ -209,5 +226,24 @@ class ImportanceSampler(Sampler.Sampler):
         '''
         max_val = np.amax(scores)
         scores = np.array(scores)
-        scores = np.exp(scores - max_val)
+        scores = np.exp(self.softmax_alpha * (scores - max_val))
         return list(scores / np.sum(scores))
+
+    def _update_covar(self):
+        '''
+        Method to update the covariance matrix.
+        
+        It divides the original covariance matrix by kth root of n
+        where k is the dimensionality and n is tne number of samples
+        generated till now.
+
+        '''
+
+        n_samples = len(self.sample_scores)
+        dim = len(self.param_names)
+        if n_samples != 0:
+            self.covar_matrix = self._covar_matrix / np.power(
+                n_samples, 1.0 / dim)
+        else:
+            self.covar_matrix = self._covar_matrix
+        return
