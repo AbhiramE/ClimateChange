@@ -39,9 +39,9 @@ class ImportanceSampler(Sampler.Sampler):
                  param_names,
                  param_ranges,
                  covar_matrix=None,
-                 random_every=5,
+                 random_every=50,
                  random_sample_count=10,
-                 remove_every=5,
+                 remove_every=1,
                  remove_sample_count=5,
                  softmax_alpha=100):
         '''
@@ -161,8 +161,9 @@ class ImportanceSampler(Sampler.Sampler):
                 # Probably would be computationally efficient
                 # if we remove duplicate handling
                 sample = tuple(sample)  # list and array not hashable
-                while sample in new_points or (all(low > sample)
-                                               or all(sample > high)):
+                # while sample in new_points or (all(low > sample)
+                #                                or all(sample > high)):
+                while sample in new_points:
                     sample = np.random.multivariate_normal(
                         points[idx], self.covar_matrix)
                     sample = sample.reshape(-1)  # turn it into a row vector

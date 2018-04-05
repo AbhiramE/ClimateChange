@@ -95,7 +95,7 @@ def get_all_average_rate_output(exp_dirs,
         obj = dict()
         params = key[1:-1].split(',')
         for i, name in enumerate(key_sig):
-            obj[name] = params[i].strip()
+            obj[name] = float(params[i].strip())
         obj[constants.ESL_VAR] = esl
         result.append(obj)
     return result
@@ -108,10 +108,7 @@ if __name__ == '__main__':
         dirs = json.load(fl)
     with open(args.param_name_tuple_file) as fl:
         param_names = json.load(fl)
-    print("In parse output")
     output_file = args.out_file
     res = get_all_average_rate_output(dirs, param_names)
     with open(output_file, 'w') as f:
         json.dump(res, f)
-
-    log.info('%s\n', res)
