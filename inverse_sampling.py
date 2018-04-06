@@ -45,12 +45,13 @@ if __name__ == '__main__':
     # Interate based on fixed number of iterations.
     for i in range(0, iterations):
         cut_params = params.copy()
-        new_sample = list(np.zeros(d))
+        new_sample = []
 
         for j in range(0, d):
-            new_sample[j] = inverse_transform_sampling(cut_params[:, j])
+            new_sample.append(inverse_transform_sampling(cut_params[:, j]))
             cut_params = cut_params[cut_params[:, j] >= new_sample[j]]
 
+        print(new_sample)
         exp_dirs, job_ids = setup.initiate_jobs(args, [tuple(new_sample)], param_names)
         setup.wait_for(job_ids)
 
