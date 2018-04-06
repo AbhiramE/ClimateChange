@@ -6,7 +6,7 @@ import constants
 import setup_experiment as setup
 import utils
 import scoring
-import _pickle as p
+import pickle as p
 import sampling.RandomSampler as RS
 
 
