@@ -17,6 +17,7 @@ def inverse_transform_sampling(data, n_bins=40, n_samples=1):
     inv_cdf = interpolate.interp1d(cum_values, bin_edges)
 
     r = np.random.rand(n_samples)
+    print(inv_cdf(r)[0])
     return inv_cdf(r)[0]
 
 
@@ -48,6 +49,7 @@ if __name__ == '__main__':
         new_sample = []
 
         for j in range(0, d):
+            print(j)
             new_sample.append(inverse_transform_sampling(cut_params[:, j]))
             cut_params = cut_params[cut_params[:, j] >= new_sample[j]]
 
