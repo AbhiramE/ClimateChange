@@ -24,7 +24,7 @@ import time
 import json
 from sampling import ImportanceSampler as isam
 import scoring
-import _pickle as p
+import pickle as p
 
 
 def parse_args():
