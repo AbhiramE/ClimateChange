@@ -44,6 +44,7 @@ if __name__ == '__main__':
     for i in range(0, iterations):
         cut_params = params.copy()
         new_sample = list(np.zeros(d))
+
         for d in range(0, d):
             new_sample[d] = inverse_transform_sampling(cut_params[:, d])
             cut_params = cut_params[cut_params[:, d] >= new_sample[d]]
