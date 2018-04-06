@@ -47,9 +47,9 @@ if __name__ == '__main__':
         cut_params = params.copy()
         new_sample = list(np.zeros(d))
 
-        for d in range(0, d):
-            new_sample[d] = inverse_transform_sampling(cut_params[:, d])
-            cut_params = cut_params[cut_params[:, d] >= new_sample[d]]
+        for j in range(0, d):
+            new_sample[j] = inverse_transform_sampling(cut_params[:, j])
+            cut_params = cut_params[cut_params[:, j] >= new_sample[j]]
 
         exp_dirs, job_ids = setup.initiate_jobs(args, [tuple(new_sample)], param_names)
         setup.wait_for(job_ids)
