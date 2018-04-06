@@ -37,7 +37,9 @@ if __name__ == '__main__':
 
     random_sample = RandomSampler.RandomSampler(param_names=param_names, param_ranges=param_ranges)
     params = random_sample.sample(num_samples=initial_random_sample)
-    n, d = params.shape
+    print(random_sample)
+    n = initial_random_sample
+    d = len(param_names)
     running_dict = {}
 
     # Interate based on fixed number of iterations.
@@ -73,3 +75,4 @@ if __name__ == '__main__':
         if i % pickle_every == 0:
             with open('dump.p', 'wb') as fl:
                 p.dump([running_dict], fl)
+        print(running_dict)
