@@ -7,7 +7,7 @@ import setup_experiment as setup
 import utils
 import scoring
 import pickle as p
-import sampling.RandomSampler as RS
+from sampling import RandomSampler
 
 
 def inverse_transform_sampling(data, n_bins=40, n_samples=1):
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     initial_random_sample = 100
     pickle_every = 1
 
-    random_sample = RS.RandomSampler(param_names=param_names, param_ranges=param_ranges)
+    random_sample = RandomSampler.RandomSampler(param_names=param_names, param_ranges=param_ranges)
     params = random_sample.sample(num_samples=initial_random_sample)
     n, d = params.shape
     running_dict = {}
