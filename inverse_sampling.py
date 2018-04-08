@@ -52,7 +52,6 @@ if __name__ == '__main__':
 
         for k in range(0, samples_per_round):
             cut_params = params.copy()
-            print (params.shape)
             new_sample = []
             for j in range(0, d):
                 new_sample.append(inverse_transform_sampling(cut_params[:, j], param_range=param_ranges[j]))
