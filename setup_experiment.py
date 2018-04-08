@@ -201,7 +201,7 @@ if __name__ == '__main__':
     # job_ids = get_final_output(exp_dirs, key_sig)
 
     param_names = ['calvliq', 'cliffvmax']
-    param_ranges = [(0, 200), (10e3, 15e3)]
+    param_ranges = [(0, 200), (5e3, 12e3)]
     utils.configure_logging()
     args = parse_args()
 

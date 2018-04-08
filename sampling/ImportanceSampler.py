@@ -43,7 +43,8 @@ class ImportanceSampler(Sampler.Sampler):
                  random_sample_count=10,
                  remove_every=1,
                  remove_sample_count=5,
-                 softmax_alpha=100):
+                 softmax_alpha=100,
+                 covar_multiplier=5):
         '''
 
         Constructor
@@ -91,6 +92,7 @@ class ImportanceSampler(Sampler.Sampler):
         self.remove_every = remove_every
         self.remove_sample_count = remove_sample_count
         self.softmax_alpha = softmax_alpha
+        self.covar_multiplier=covar_multiplier
 
         self.sample_scores = dict()  # dictionary of sample, score
         self.iteration = 0  # denotes the current iteration
@@ -245,6 +247,7 @@ class ImportanceSampler(Sampler.Sampler):
         if n_samples != 0:
             self.covar_matrix = self._covar_matrix / np.power(
                 n_samples, 1.0 / dim)
+            self.covar_matrix = self.covar_multiplier * self.covar_matrix
         else:
             self.covar_matrix = self._covar_matrix
         return

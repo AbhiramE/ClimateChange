@@ -33,7 +33,7 @@ def plot_vars(variables, titles, lon, lat, norm, color_vmin=0.1, fig_size=(10, 1
 
 
 
-def boxplots(json_files, json_var, x_labels, plt_file_name):
+def boxplot(json_files, json_var, x_labels, plt_file_name):
     '''
     Method to generate box plots from json files
 
@@ -68,7 +68,7 @@ def boxplots(json_files, json_var, x_labels, plt_file_name):
     
 
 def pointplot(json_files, json_vars, plt_file_name):
-    n_rows=np.ceil(float(len(json_files))/SUBPLOT_COLS)
+    n_rows=np.ceil(float(len(json_files))/constants.SUBPLOT_COLS)
     for i in range(len(json_files)):
         json_file = json.load(open(json_files[i], 'r'))
         for x in json_file:
@@ -80,19 +80,27 @@ def pointplot(json_files, json_vars, plt_file_name):
         for j, var in enumerate(json_vars):
             val[:, j] = np.array([x[var] for x in json_file])
             
-        plt.subplot(n_rows,constants.SUBPLOT_COLS, i+1)
+        ax=plt.subplot(n_rows,constants.SUBPLOT_COLS, i+1)
         plt.plot(val[:, 0], val[:, 1], 'ro')
-    plt.savefig(plt_file_name + '.png')
+        ax.set_xlabel(json_vars[0])
+        ax.set_ylabel(json_vars[1])
+        ax.set_title('Generation '+str(i+1))
+        plt.tight_layout()
+    plt.savefig(plt_file_name)
     plt.close()
 
-def plot_distribution(json_files, json_var, plt_file_name):
+def distplot(json_files, json_var, plt_file_name):
+    n_rows=np.ceil(float(len(json_files))/constants.SUBPLOT_COLS)
     for i in range(len(json_files)):
         json_file = json.load(open(json_files[i], 'r'))
         for x in json_file:
             x[json_var]=float(x[json_var])
         var_i = np.array([x[json_var] for x in json_file])
         
-        axs=plt.subplot(n_rows, constants.SUBPLOT_COLS, i+1)    
-        sns.distplot(var_i, bins=30, ax=axs)
-    plt.savefig(plt_file_name + '.png')
+        ax=plt.subplot(n_rows, constants.SUBPLOT_COLS, i+1)    
+        sns.distplot(var_i, bins=30, ax=ax)
+        ax.set_xlabel(json_var)
+        ax.set_title('Generation '+str(i+1))
+    plt.tight_layout()
+    plt.savefig(plt_file_name)
     plt.close()
