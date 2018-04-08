@@ -127,8 +127,10 @@ def generate_make_file(make_file_path, param_dict):
                 out_file.write(line2)
 
 
-def get_final_output(directories, keys, final_output_file=None):
+def get_final_output(directories, keys, final_output_file=None, job_ids=None):
     job_name = "output_parse_job"
+    if job_ids is None:
+        job_ids = {}
 
     with open('directories', 'w') as outfile:
         json.dump(directories, outfile)
@@ -159,6 +161,7 @@ def get_final_output(directories, keys, final_output_file=None):
         stderr=subprocess.PIPE,
         env=env)
     out, err = process.communicate()
+
     job_ids['ouput_job'] = out.split()[2]
     log.info(out)
     log.info(err)
@@ -209,20 +212,20 @@ if __name__ == '__main__':
     n_generations = 7
     covar_matrix = np.array([[1, 0], [0, 1]])
     imp_sampler = isam.ImportanceSampler(param_names, param_ranges)
-                                         
+
     for i in range(0, n_generations):
         samples = imp_sampler.sample(n_samples)
-        exp_dirs, job_ids = initiate_jobs(args, samples, param_names)
+        exp_dirs, jobs = initiate_jobs(args, samples, param_names)
         log.info('Job initiated for %d generation\n', i + 1)
 
-        wait_for(job_ids)
+        wait_for(jobs)
 
         # output_file
         output_file = args.exp_dir + constants.FINAL_OUTPUT_FILE_NAME \
             + "_" + str(i + 1)
 
         # Get the final output in a json file
-        job_id = get_final_output(exp_dirs, param_names, output_file)
+        job_id = get_final_output(exp_dirs, param_names, output_file, job_ids=jobs)
 
         wait_for(job_id)
 

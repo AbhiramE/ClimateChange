@@ -10,19 +10,21 @@ import pickle as p
 from sampling import RandomSampler
 
 
-def inverse_transform_sampling(data, n_bins=40, n_samples=1):
-    hist, bin_edges = np.histogram(data, bins=n_bins, density=True)
+def inverse_transform_sampling(data, n_bins=40, n_samples=1, param_range=None):
+
+    if param_range is None:
+        param_range = (data.min(), data.max())
+
+    hist, bin_edges = np.histogram(data, bins=n_bins, density=True, range=param_range)
     cum_values = np.zeros(bin_edges.shape)
     cum_values[1:] = np.cumsum(hist * np.diff(bin_edges))
     inv_cdf = interpolate.interp1d(cum_values, bin_edges)
 
     r = np.random.rand(n_samples)
-    print(inv_cdf(r)[0])
     return inv_cdf(r)[0]
 
 
-def load_data(file):
-    data = json.load(open(file))
+def load_data(data):
     return pd.DataFrame(data).astype(float).as_matrix()
 
 
@@ -32,33 +34,42 @@ if __name__ == '__main__':
     param_ranges = [(0, constants.MAX_CALVLIQ), (0, constants.MAX_CLIFFMAX)]
     utils.configure_logging()
     args = setup.parse_args()
-    iterations = 10000
+    iterations = 400
     initial_random_sample = 100
-    pickle_every = 1
+    samples_per_round = 25
+    pickle_every = 50
 
     random_sample = RandomSampler.RandomSampler(param_names=param_names, param_ranges=param_ranges)
-    params = random_sample.sample(num_samples=initial_random_sample)
-    print(random_sample)
+    data = random_sample.sample(num_samples=initial_random_sample)
+    params = load_data(data)
     n = initial_random_sample
     d = len(param_names)
     running_dict = {}
 
     # Interate based on fixed number of iterations.
     for i in range(0, iterations):
-        cut_params = params.copy()
-        new_sample = []
+        samples = []
 
-        for j in range(0, d):
-            print(j)
-            new_sample.append(inverse_transform_sampling(cut_params[:, j]))
-            cut_params = cut_params[cut_params[:, j] >= new_sample[j]]
+        for k in range(0, samples_per_round):
+            cut_params = params.copy()
+            print (params.shape)
+            new_sample = []
+            for j in range(0, d):
+                new_sample.append(inverse_transform_sampling(cut_params[:, j], param_range=param_ranges[j]))
+                cut_params = cut_params[cut_params[:, j] >= new_sample[j]]
 
-        print(new_sample)
-        exp_dirs, job_ids = setup.initiate_jobs(args, [tuple(new_sample)], param_names)
+            samples.append(tuple(new_sample))
+
+        # Run job with the sampled param values
+        exp_dirs, job_ids = setup.initiate_jobs(args, samples, param_names)
         setup.wait_for(job_ids)
 
+        # Run job to parse output
+        job_id = setup.get_final_output(exp_dirs, param_names, job_ids=job_ids)
+        setup.wait_for(job_id)
+
         # output_file
-        output_file = args.exp_dir + constants.FINAL_OUTPUT_FILE_NAME
+        output_file = constants.FINAL_OUTPUT_FILE_NAME
 
         with open(output_file) as fl:
             score_dict = utils.parse_json_output_to_dict(
@@ -71,11 +82,12 @@ if __name__ == '__main__':
             score_dict[k] = scoring.gaussian_score([v])
             score_dict[k] = score_dict[k][0]
 
-        if score_dict[tuple(new_sample)] >= 0:
-            running_dict[tuple(new_sample)] = score_dict[tuple(new_sample)]
-            params.append(new_sample)
+            if score_dict[k] > 0:
+                running_dict[k] = score_dict[k]
+                arr = np.array(list(k))
+                params = np.vstack((params, arr))
 
         if i % pickle_every == 0:
-            with open('dump.p', 'wb') as fl:
+            with open('dump'+str(i)+'.p', 'wb') as fl:
                 p.dump([running_dict], fl)
         print(running_dict)
