@@ -7,6 +7,7 @@ import json
 import pandas as pd
 import numpy as np
 import seaborn as sns
+import constants
 
 
 def plot_vars(variables, titles, lon, lat, norm, color_vmin=0.1, fig_size=(10, 10), res='l'):
@@ -67,6 +68,7 @@ def boxplots(json_files, json_var, x_labels, plt_file_name):
     
 
 def pointplot(json_files, json_vars, plt_file_name):
+    n_rows=np.ceil(float(len(json_files))/SUBPLOT_COLS)
     for i in range(len(json_files)):
         json_file = json.load(open(json_files[i], 'r'))
         for x in json_file:
@@ -77,17 +79,20 @@ def pointplot(json_files, json_vars, plt_file_name):
 
         for j, var in enumerate(json_vars):
             val[:, j] = np.array([x[var] for x in json_file])
-
+            
+        plt.subplot(n_rows,constants.SUBPLOT_COLS, i+1)
         plt.plot(val[:, 0], val[:, 1], 'ro')
-        plt.savefig(plt_file_name + str(i) + '.png')
-        plt.close()
+    plt.savefig(plt_file_name + '.png')
+    plt.close()
 
-def hist(json_files, json_var, plt_file_name):
+def plot_distribution(json_files, json_var, plt_file_name):
     for i in range(len(json_files)):
         json_file = json.load(open(json_files[i], 'r'))
         for x in json_file:
             x[json_var]=float(x[json_var])
         var_i = np.array([x[json_var] for x in json_file])
-        sns.distplot(var_i, bins=30)
-        plt.savefig(plt_file_name + str(i + 1) + '.png')
-        plt.close()
+        
+        axs=plt.subplot(n_rows, constants.SUBPLOT_COLS, i+1)    
+        sns.distplot(var_i, bins=30, ax=axs)
+    plt.savefig(plt_file_name + '.png')
+    plt.close()

@@ -13,3 +13,7 @@ MAX_CLIFFMAX = 12e3
 YR_BEG = 'year_begin'
 YR_END = 'year_end'
 ESL_DER = {YR_BEG: 50, YR_END: 67}
+
+
+# Plotting configuration
+SUBPLOT_COLS=2

@@ -66,7 +66,7 @@ def initiate_jobs(args, samples, param_names):
         param_dict = dict()
         for i in range(0, len(sample)):
             param_dict[param_names[i]] = sample[i]
-        key = str(sample)  # key must be immutable
+        key = str(sample)  # key must be immutable and string for parsing output later
         job_name = ['run'] + [str(s) for s in sample]
         job_name = '_'.join(job_name)
         directory = exp_dir + job_name + '/'
@@ -201,7 +201,7 @@ if __name__ == '__main__':
     # job_ids = get_final_output(exp_dirs, key_sig)
 
     param_names = ['calvliq', 'cliffvmax']
-    param_ranges = [(0, 200), (0, 12e3)]
+    param_ranges = [(0, 200), (10e3, 15e3)]
     utils.configure_logging()
     args = parse_args()
 
@@ -226,8 +226,6 @@ if __name__ == '__main__':
 
         wait_for(job_id)
 
-        with open('dump.p', 'wb') as fl:
-            p.dump([exp_dirs, param_names, param_ranges, imp_sampler], fl)
 
         # read the esl output
         with open(output_file) as fl:
@@ -243,3 +241,6 @@ if __name__ == '__main__':
 
         # Update the scores in importance sampler object
         imp_sampler.update_scores(score_dict)
+
+        with open(args.exp_dir+'sampler_'+str(i+1)+'.p', 'wb') as fl:
+            p.dump([imp_sampler], fl)

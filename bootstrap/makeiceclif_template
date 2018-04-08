@@ -94,7 +94,7 @@ IPATH  = -I. -I$(DI) -I$(DE) -I$(NI)
           -DNYEARHIS=68 \
           -DNYEARTAB=1 \
           -DNYEARTABBUD=-1 \
-          -DOCFACMULT=3.0 \
+          -DOCFACMULT=5.0 \
           -DCALVLIQ=PARAM \
           -DCLIFFVMAX=PARAM \
           -DCLIFFMELT \
