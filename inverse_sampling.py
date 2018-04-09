@@ -34,9 +34,9 @@ if __name__ == '__main__':
     param_ranges = [(0, constants.MAX_CALVLIQ), (0, constants.MAX_CLIFFMAX)]
     utils.configure_logging()
     args = setup.parse_args()
-    iterations = 400
+    iterations = 300
     initial_random_sample = 100
-    samples_per_round = 25
+    samples_per_round = 32
     pickle_every = 50
 
     random_sample = RandomSampler.RandomSampler(param_names=param_names, param_ranges=param_ranges)
@@ -82,7 +82,7 @@ if __name__ == '__main__':
             score_dict[k] = score_dict[k][0]
 
             if score_dict[k] > 0:
-                running_dict[k] = score_dict[k]
+                running_dict[k] = v
                 arr = np.array(list(k))
                 params = np.vstack((params, arr))
 
