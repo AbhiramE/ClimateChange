@@ -34,10 +34,10 @@ if __name__ == '__main__':
     param_ranges = [(0, constants.MAX_CALVLIQ), (0, constants.MAX_CLIFFMAX)]
     utils.configure_logging()
     args = setup.parse_args()
-    iterations = 300
+    iterations = 5
     initial_random_sample = 100
     samples_per_round = 32
-    pickle_every = 50
+    pickle_every = 1
 
     random_sample = RandomSampler.RandomSampler(param_names=param_names, param_ranges=param_ranges)
     data = random_sample.sample(num_samples=initial_random_sample)
