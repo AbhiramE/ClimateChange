@@ -22,7 +22,7 @@ def binary_score(esl_values, desired_range):
     '''
     scores = np.array(esl_values)
     scores[scores < desired_range[0] or scores > desired_range[1]] = 0
-    scores[scores >= desired_range[0] and scores <= desired_range[1]] = 1
+    scores[desired_range[0] <= scores <= desired_range[1]] = 1
     return scores
 
 
