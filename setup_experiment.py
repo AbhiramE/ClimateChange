@@ -201,14 +201,13 @@ if __name__ == '__main__':
     # job_ids = get_final_output(exp_dirs, key_sig)
 
     param_names = ['calvliq', 'cliffvmax']
-    param_ranges = [(0, 200), (5e3, 12e3)]
+    param_ranges = [(0, 300), (8e3, 18e3)]
     utils.configure_logging()
     args = parse_args()
 
-    n_samples = 96
-    n_generations = 7
-    covar_matrix = np.array([[1, 0], [0, 1]])
-    imp_sampler = isam.ImportanceSampler(param_names, param_ranges)
+    n_samples = 64
+    n_generations = 25
+    imp_sampler = isam.ImportanceSampler(param_names, param_ranges, random_every = 10, random_sample_count = 5, covar_multiplier = 10)
                                          
     for i in range(0, n_generations):
         samples = imp_sampler.sample(n_samples)
