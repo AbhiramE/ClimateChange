@@ -86,7 +86,7 @@ if __name__ == '__main__':
             score_dict[k] = scoring.gaussian_score([v])
             score_dict[k] = score_dict[k][0]
 
-            if score_dict[k] > 0:
+            if score_dict[k] > 0 and constants.DESIRED_ESL_RANGE[0] < v < constants.DESIRED_ESL_RANGE[1]:
                 running_dict[k] = v
                 arr = np.array(list(k))
                 params = np.vstack((params, arr))

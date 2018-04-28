@@ -13,7 +13,7 @@ def load_pickle(file_name):
 
 def params_plot(param_name1, param_name2, param_range1, param_range2):
     fig, axes = plt.subplots(nrows=2, ncols=2)
-    i = 30
+    i = 3
 
     for row in axes:
         for col in row:
@@ -28,14 +28,14 @@ def params_plot(param_name1, param_name2, param_range1, param_range2):
             col.set_ylim(param_range2[0], param_range2[1])
             col.set_xlabel(param_name1)
             col.set_ylabel(param_name2)
-            i += 20
+            i += 2
     plt.savefig("figs/" + param_name1 + param_name2 + ".png")
     plt.show()
 
 
 def esl_params_plot(param_name, param_range, index):
     fig, axes = plt.subplots(nrows=2, ncols=2)
-    i = 30
+    i = 3
 
     for row in axes:
         for col in row:
@@ -49,13 +49,13 @@ def esl_params_plot(param_name, param_range, index):
             col.set_ylim(min(y), max(y))
             col.set_xlabel(param_name)
             col.set_ylabel("esl")
-            i += 20
+            i += 2
     plt.savefig("figs/" + param_name + "_esl.png")
     plt.show()
 
 
 def esl_hist_plot(xlabel, ylabel, index):
-    file_name = "dump90.p"
+    file_name = "dump9.p"
     params_dict = load_pickle(file_name)
     params_dict = {k: params_dict[k] for k in params_dict if not isnan(k[0]) and not isnan(k[1])}
     params = np.asarray(list(params_dict.keys()))
@@ -71,12 +71,13 @@ def esl_hist_plot(xlabel, ylabel, index):
 def violin_plots(param_name, index):
     all_data = []
 
-    for i in range(30, 100, 20):
+    for i in range(3, 10, 2):
         file_name = "dump" + str(i) + ".p"
         print(file_name)
         params_dict = load_pickle(file_name)
         params_dict = {k: params_dict[k] for k in params_dict if not isnan(k[0]) and not isnan(k[1])}
         params = np.asarray(list(params_dict.keys()))
+        print(len(params))
         all_data.append(params[index])
 
     # plot violin plot
