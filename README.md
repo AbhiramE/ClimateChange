@@ -15,7 +15,9 @@
 
 ### Steps to run
 Use the following command to run:
-`python3 setup_experiment.py --exp_dir test`
+```
+python3 setup_experiment.py --exp_dir test
+```
 
 To run inverse sampling:
 ```
