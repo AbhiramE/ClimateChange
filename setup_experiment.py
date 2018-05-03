@@ -24,7 +24,7 @@ import time
 import json
 from sampling import ImportanceSampler as isam
 import scoring
-import _pickle as p
+import pickle as p
 
 
 def parse_args():
@@ -208,23 +208,24 @@ if __name__ == '__main__':
     utils.configure_logging()
     args = parse_args()
 
+
     n_samples = 64
     n_generations = 25
     imp_sampler = isam.ImportanceSampler(param_names, param_ranges, random_every = 10, random_sample_count = 5, covar_multiplier = 10)
-                                         
+
     for i in range(0, n_generations):
         samples = imp_sampler.sample(n_samples)
-        exp_dirs, job_ids = initiate_jobs(args, samples, param_names)
+        exp_dirs, jobs = initiate_jobs(args, samples, param_names)
         log.info('Job initiated for %d generation\n', i + 1)
 
-        wait_for(job_ids)
+        wait_for(jobs)
 
         # output_file
         output_file = args.exp_dir + constants.FINAL_OUTPUT_FILE_NAME \
             + "_" + str(i + 1)
 
         # Get the final output in a json file
-        job_id = get_final_output(exp_dirs, param_names, output_file)
+        job_id = get_final_output(exp_dirs, param_names, output_file, job_ids=jobs)
 
         wait_for(job_id)
 
