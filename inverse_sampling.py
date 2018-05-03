@@ -12,6 +12,15 @@ from sampling import RandomSampler
 
 def inverse_transform_sampling(data, n_bins=40, n_samples=1, param_range=None):
 
+    '''
+
+    :param data:
+    :param n_bins:
+    :param n_samples:
+    :param param_range:
+    :return:
+    '''
+
     if param_range is None:
         param_range = (data.min(), data.max())
 
@@ -25,6 +34,13 @@ def inverse_transform_sampling(data, n_bins=40, n_samples=1, param_range=None):
 
 
 def load_data(data):
+
+    '''
+
+    :param data: data loaded as csv file.
+    :return: A numpy matrix
+    '''
+
     return pd.DataFrame(data).astype(float).as_matrix()
 
 
