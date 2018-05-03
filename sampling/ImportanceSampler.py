@@ -39,11 +39,12 @@ class ImportanceSampler(Sampler.Sampler):
                  param_names,
                  param_ranges,
                  covar_matrix=None,
-                 random_every=5,
+                 random_every=50,
                  random_sample_count=10,
-                 remove_every=5,
+                 remove_every=1,
                  remove_sample_count=5,
-                 softmax_alpha=100):
+                 softmax_alpha=100,
+                 covar_multiplier=5):
         '''
 
         Constructor
@@ -91,6 +92,7 @@ class ImportanceSampler(Sampler.Sampler):
         self.remove_every = remove_every
         self.remove_sample_count = remove_sample_count
         self.softmax_alpha = softmax_alpha
+        self.covar_multiplier=covar_multiplier
 
         self.sample_scores = dict()  # dictionary of sample, score
         self.iteration = 0  # denotes the current iteration
@@ -135,7 +137,9 @@ class ImportanceSampler(Sampler.Sampler):
             # determine if random samples need to be introduced
             if self.iteration % self.random_every == 0:
                 num_samples = num_samples - self.random_sample_count
-                r = rs.RandomSampler(self.param_names, self.param_ranges)
+                new_ranges = self._get_actual_param_range()
+                new_ranges = [(x[0]-0.15*np.abs(x[1]-x[0]), x[1] + 0.15 * np.abs(x[1]-x[0])) for x in new_ranges]
+                r = rs.RandomSampler(self.param_names, new_ranges)
                 new_points.update(r.sample(self.random_sample_count))
             # sample n points based on the distribution. I'll be
             # sampling the indices of the points here
@@ -161,8 +165,9 @@ class ImportanceSampler(Sampler.Sampler):
                 # Probably would be computationally efficient
                 # if we remove duplicate handling
                 sample = tuple(sample)  # list and array not hashable
-                while sample in new_points or (all(low > sample)
-                                               or all(sample > high)):
+                # while sample in new_points or (all(low > sample)
+                #                                or all(sample > high)):
+                while sample in new_points or sample in self.sample_scores:
                     sample = np.random.multivariate_normal(
                         points[idx], self.covar_matrix)
                     sample = sample.reshape(-1)  # turn it into a row vector
@@ -244,6 +249,25 @@ class ImportanceSampler(Sampler.Sampler):
         if n_samples != 0:
             self.covar_matrix = self._covar_matrix / np.power(
                 n_samples, 1.0 / dim)
+            self.covar_matrix = self.covar_multiplier * self.covar_matrix
         else:
             self.covar_matrix = self._covar_matrix
         return
+
+    def _get_actual_param_range(self):
+        '''
+        Method to get the actual range in which the parameters lie
+        '''
+        dim=len(self.param_names)
+        min_sample=np.zeros(dim)*np.finfo('float').max
+        max_sample=np.zeros(dim)*np.finfo('float').min
+
+        for sample in self.sample_scores:
+            # for i,val in enumerate(sample): # can use max function here
+            #     if val<min_sample[i]:
+            #         min_sample[i]=val
+            #     elif val>max_sample[i]:
+            #         max_sample[i]=val 
+            max_sample = np.maximum(max_sample, sample)
+            min_sample = np.minimum(min_sample, sample)
+        return zip(min_sample,max_sample)

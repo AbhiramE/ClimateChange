@@ -24,7 +24,7 @@ import time
 import json
 from sampling import ImportanceSampler as isam
 import scoring
-import pickle as p
+import _pickle as p
 
 
 def parse_args():
@@ -66,7 +66,7 @@ def initiate_jobs(args, samples, param_names):
         param_dict = dict()
         for i in range(0, len(sample)):
             param_dict[param_names[i]] = sample[i]
-        key = str(sample)  # key must be immutable
+        key = str(sample)  # key must be immutable and string for parsing output later
         job_name = ['run'] + [str(s) for s in sample]
         job_name = '_'.join(job_name)
         directory = exp_dir + job_name + '/'
@@ -204,33 +204,29 @@ if __name__ == '__main__':
     # job_ids = get_final_output(exp_dirs, key_sig)
 
     param_names = ['calvliq', 'cliffvmax']
-    param_ranges = [(0, 200), (0, 12e3)]
+    param_ranges = [(0, 300), (8e3, 18e3)]
     utils.configure_logging()
     args = parse_args()
 
-    n_samples = 96
-    n_generations = 7
-    covar_matrix = np.array([[1, 0], [0, 1]])
-    imp_sampler = isam.ImportanceSampler(param_names, param_ranges)
-
+    n_samples = 64
+    n_generations = 25
+    imp_sampler = isam.ImportanceSampler(param_names, param_ranges, random_every = 10, random_sample_count = 5, covar_multiplier = 10)
+                                         
     for i in range(0, n_generations):
         samples = imp_sampler.sample(n_samples)
-        exp_dirs, jobs = initiate_jobs(args, samples, param_names)
+        exp_dirs, job_ids = initiate_jobs(args, samples, param_names)
         log.info('Job initiated for %d generation\n', i + 1)
 
-        wait_for(jobs)
+        wait_for(job_ids)
 
         # output_file
         output_file = args.exp_dir + constants.FINAL_OUTPUT_FILE_NAME \
             + "_" + str(i + 1)
 
         # Get the final output in a json file
-        job_id = get_final_output(exp_dirs, param_names, output_file, job_ids=jobs)
+        job_id = get_final_output(exp_dirs, param_names, output_file)
 
         wait_for(job_id)
-
-        with open('dump.p', 'wb') as fl:
-            p.dump([exp_dirs, param_names, param_ranges, imp_sampler], fl)
 
         # read the esl output
         with open(output_file) as fl:
@@ -246,3 +242,6 @@ if __name__ == '__main__':
 
         # Update the scores in importance sampler object
         imp_sampler.update_scores(score_dict)
+
+        with open(args.exp_dir+'sampler_'+str(i+1)+'.p', 'wb') as fl:
+            p.dump([imp_sampler], fl)
