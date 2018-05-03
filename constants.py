@@ -6,8 +6,10 @@ RESULT_FILE_NAME = 'fort.22'
 SCORE_VAR = 'score'
 ESL_VAR = 'esl'
 DESIRED_ESL_RANGE = (0.0001, 0.0005)
-MAX_CALVLIQ = 200
-MAX_CLIFFMAX = 12e3
+MIN_CALVLIQ = 20
+MAX_CALVLIQ = 240
+MIN_CLIFFMAX = 8e3
+MAX_CLIFFMAX = 15e3
 
 # Configuration for calculating ESL derivative
 YR_BEG = 'year_begin'
