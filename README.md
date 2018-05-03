@@ -14,7 +14,7 @@
 
 
 ### Steps to run
-Use the following command to run:
+Use the following command to run Importance sampling:
 ```
 python3 setup_experiment.py --exp_dir test
 ```
